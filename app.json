@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Money Plan",
+    "slug": "money-plan",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "moneyplan",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#07060D",
+    "ios": {
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "app.moneyplan",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Money Plan uses Face ID to lock your plan."
+      }
+    },
+    "android": {
+      "package": "app.moneyplan",
+      "adaptiveIcon": {
+        "backgroundColor": "#07060D",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      ["expo-sqlite", { "useSQLCipher": true }],
+      "expo-secure-store",
+      ["expo-local-authentication", { "faceIDPermission": "Money Plan uses Face ID to lock your plan." }],
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#07060D",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
