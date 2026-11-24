@@ -82,7 +82,8 @@ export type Goal = {
   retirement?: RetirementSpec;
   /** Months of expenses for the safety net. */
   safetyMonths?: number;
-  status: 'active' | 'reached' | 'paused';
+  /** reached: goal day passed and its money is kept for it; spent: the money was used. */
+  status: 'active' | 'reached' | 'paused' | 'spent';
   createdAt: YM;
 };
 

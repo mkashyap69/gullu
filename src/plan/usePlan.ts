@@ -4,6 +4,7 @@
  * Memoised on the store snapshots, so it only recomputes when inputs change.
  */
 import { useEffect, useMemo, useState } from 'react';
+import { create } from 'zustand';
 
 import { CHOL, MC_PATHS, MC_SEED, computePlanFast, goalSpec, planGoals, withRanges, type Plan } from '../engine/plan';
 import type { McResult } from '../engine/core';
@@ -33,12 +34,16 @@ export function usePlanInput(): PlanInput | null {
   );
 }
 
+/** Bumped by pull-to-refresh: reruns the ranges even when inputs are unchanged. */
+export const usePlanNonce = create<{ n: number; bump: () => void }>()((set) => ({ n: 0, bump: () => set((s) => ({ n: s.n + 1 })) }));
+
 export type PlanState = { plan: Plan | null; ranges: McResult[] | null; rangesReady: boolean };
 
 export function usePlan(): PlanState {
   const input = usePlanInput();
   const fast = useMemo(() => (input ? computePlanFast(input) : null), [input]);
   const [mc, setMc] = useState<{ input: PlanInput; results: McResult[] } | null>(null);
+  const nonce = usePlanNonce((s) => s.n);
   useEffect(() => {
     if (!input) return;
     let live = true;
@@ -51,7 +56,7 @@ export function usePlan(): PlanState {
     return () => {
       live = false;
     };
-  }, [input]);
+  }, [input, nonce]);
   const plan = useMemo(() => {
     if (!fast || !input) return null;
     if (!mc || mc.input !== input) return fast;

@@ -26,6 +26,8 @@ export type Settings = {
   notifications: boolean;
   /** Dev: show the FPS overlay. */
   fpsOverlay: boolean;
+  /** The user reordered goals by hand (3.1); otherwise they're listed soonest first. */
+  customGoalOrder: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -35,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   haptics: true,
   notifications: true,
   fpsOverlay: false,
+  customGoalOrder: false,
 };
 
 export type Payday = { month: number; amount: number; kind: 'same' | 'less' | 'bonus'; placedAt: number | null };
@@ -44,7 +47,9 @@ export type HabitEvent =
   | { kind: 'wear'; data: { skin: string }; at: number }
   | { kind: 'shield'; data: { month: number; used: boolean }; at: number }
   | { kind: 'challenge'; data: { id: string; name: string; target: number; progress: number; done: boolean }; at: number }
-  | { kind: 'minute'; data: { card: number; correct: boolean }; at: number };
+  | { kind: 'minute'; data: { card: number; correct: boolean }; at: number }
+  /** A one-time moment that has been shown (market fall per high, milestone, goal day). */
+  | { kind: 'moment'; data: { key: string }; at: number };
 
 export type ValueSnapshot = { date: number; holdingId: string | null; assetClass: AssetClass | null; value: number };
 

@@ -39,6 +39,8 @@ type GoalsState = {
   upsertGoal: (g: Goal) => Promise<void>;
   removeGoal: (id: string) => Promise<void>;
   setFlowRules: (rules: FlowRule[]) => Promise<void>;
+  /** Saves a hand-made order (long-press reorder on 3.1). */
+  reorder: (ids: string[]) => Promise<void>;
 };
 export const useGoalsStore = create<GoalsState>()((set, get) => ({
   goals: [],
@@ -53,6 +55,13 @@ export const useGoalsStore = create<GoalsState>()((set, get) => ({
     await repo.deleteGoal(getDb(), id);
     set({ goals: get().goals.filter((g) => g.id !== id) });
     useHoldingsStore.setState((s) => ({ holdingGoals: s.holdingGoals.filter((hg) => hg.goalId !== id) }));
+  },
+  reorder: async (ids) => {
+    const goals = get().goals;
+    const next = [...ids.map((id) => goals.find((g) => g.id === id)!).filter(Boolean), ...goals.filter((g) => !ids.includes(g.id))];
+    for (const [i, g] of next.entries()) await repo.saveGoal(getDb(), g, i);
+    set({ goals: next });
+    await useSettingsStore.getState().update({ customGoalOrder: true });
   },
   setFlowRules: async (rules) => {
     for (const r of rules) await repo.saveFlowRule(getDb(), r);

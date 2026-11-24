@@ -1,0 +1,44 @@
+# Phase 4: Home and Goals with the Manish demo (dated 1 Apr 2028).
+# maestro test .maestro/home-goals-manish.yaml (dev build: the demo switch lives under /dev)
+appId: app.moneyplan
+name: Home and Goals — Manish demo
+---
+- clearState
+- launchApp
+- openLink: moneyplan://dev/data
+- tapOn: "Load demo data: Manish"
+- openLink: moneyplan://home
+
+# 2.2 shows once for this high: ₹12.2 L below it, calm, no haptics.
+- extendedWaitUntil:
+    visible: "Your investments are ₹12.2 L below their high."
+    timeout: 10000
+- assertVisible: "About 14% down. Your plan expected falls like this: all 4 goals are still inside their range, and nothing needs selling."
+- tapOn: { id: fall-keep-going }
+
+# 2.1 Home
+- assertVisible: "3 of 4 goals on track."
+- assertVisible: "Child's education is ₹6 L short. ₹3,500 more a month fixes it."
+- assertVisible: "₹55,000"
+- assertVisible: "Education"   # Known design fix 1
+
+# 3.2 Goal detail from the Education ring, then 3.4 Glide path
+- tapOn: { id: home-ring-1 }
+- extendedWaitUntil:
+    visible: "Likely ₹34 L of ₹40 L."
+    timeout: 8000
+- assertVisible: "₹16,000"
+- tapOn: { id: detail-mix }
+- assertVisible: "Less equity as the date gets closer."
+- tapOn: "Got it"
+- back
+
+# 3.1 Goals
+- tapOn: "Goals"
+- assertVisible: "In today's rupees, soonest first."
+- assertVisible: "₹12,500 a month, needs ₹16,000"
+- assertVisible: "Japan trip"
+
+# 3.3 Edit goal: the cap note follows the date
+- tapOn: { id: goals-add }
+- assertVisible: "Save goal"

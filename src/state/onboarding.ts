@@ -5,7 +5,8 @@
 import { create } from 'zustand';
 
 import { DEMO_TODAY } from '../data/demo';
-import { replaceAll, DEFAULT_SETTINGS } from '../data/repo';
+import { replaceAll, DEFAULT_SETTINGS, type HabitEvent } from '../data/repo';
+import { safetyNet } from '../engine/plan';
 import { ym } from '../engine/dates';
 import { buildPlanInput, defaultGoals, scoreRisk, stageFor, type HoldingEntry, type OnboardingAnswers, type RiskAnswerKey, type TemplateId } from '../engine/onboarding';
 import type { Loan, PlanInput, Work, YM } from '../engine/types';
@@ -143,6 +144,13 @@ export function answers(): OnboardingAnswers {
 }
 
 /** Writes the whole plan (profile, goals, holdings, loans, rules) and loads it into the stores. */
+function alreadyMet(input: PlanInput): HabitEvent[] {
+  const out: HabitEvent[] = [];
+  if (safetyNet(input)?.full) out.push({ kind: 'moment', data: { key: 'safety-full' }, at: input.today });
+  if (input.holdings.filter((h) => h.planned).reduce((a, h) => a + h.value, 0) >= 1_00_00_000) out.push({ kind: 'moment', data: { key: 'invested-1cr' }, at: input.today });
+  return out;
+}
+
 export async function finishOnboarding(): Promise<void> {
   const s = useOnboarding.getState();
   const a = answers();
@@ -152,7 +160,8 @@ export async function finishOnboarding(): Promise<void> {
     input: rest,
     settings: { ...DEFAULT_SETTINGS },
     paydays: [],
-    habits: [],
+    // Milestones already true on day one aren't celebrated later (they weren't earned in the app).
+    habits: alreadyMet(input),
     snapshots: input.holdings.map((h) => ({ date: a.today, holdingId: h.id, assetClass: h.assetClass, value: h.value })),
   };
   await replaceAll(getDb(), data);

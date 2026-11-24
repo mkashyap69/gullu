@@ -120,3 +120,36 @@ Plan: pure engine pieces first (risk scoring, templates, holding auto-assign, pr
 ### Notes
 - Web preview draws the background with CSS (`ScreenBackground.web.tsx`): browsers cap WebGL contexts and Skia uses one per canvas. Phones keep the Skia background.
 - Step dots: 5 for workers (about, risk, goals, have, monthly), 4 for retirees (no goals step) — Known design fix 6, and "Retired changes the step count".
+
+## Phase 4 · Home and Goals (2.1–2.3, 3.1–3.5) — built
+
+Plan: engine for the one-time moments and glide steps (tests first), then the five tabs with the custom tab bar, then the eight screens, then a browser tour with the Manish demo and a Maestro flow.
+
+- [x] `src/engine/moments.ts` + tests: market fall from the highest recorded total (10%; 7% Cautious; 5% Safety-first), once per high, re-armed by a new high; "inside their range" = within a bad year for the profile (equity share × 15% × 1.645, about 15% for Balanced); milestones (6/12 paydays, safety net full, ₹1 Cr) once each; goal day when a goal's money reaches its target; glide steps (60 → 40 → 20%). Shown moments are stored as habit events (`kind: 'moment'`).
+- [x] Tabs (`app/(tabs)`): Home · Goals · Payday (Income for retirees) · Wealth · You, with the animated `TabBar`. **Known design fix 4:** pushed screens sit above the tabs, so the tab bar hides on them. Payday (Phase 5), Wealth (6) and most of You (7) are placeholders; You already has Hide amounts, Reduce animations and Haptics.
+- [x] 2.1 Home: headline and focus line from the plan, level/streak chip, rings (Known design fix 1: "Education"), payday bar that glows while Gullu watches it, pull-to-stretch that recomputes the ranges, one pending moment per visit (goal day → market fall → milestone).
+- [x] 2.2 Market fall (`/market-fall`), from the Motion lab prototype, now driven by the engine; no haptics.
+- [x] 2.3 Milestone (`/milestone?kind=`): confetti, count-up, success haptic, static in reduced motion.
+- [x] 3.1 Goals: soonest first, date ranges, required vs actual with a dual bar and ghost marker, Stretch dot pulse, safety net last, reached goals listed, long-press reorder (`ReorderList`: lift, neighbours slide, haptic per slot) saved as a custom order.
+- [x] 3.2 Goal detail (`/goal/[id]`): shared-element from the ring, fan chart, live preview on press, "Add ₹X a month" confirm sheet that raises the goal and the monthly total; the mix line shows the goal's horizon-capped mix and opens 3.4; "Edit goal"; "What if" opens a Phase 6 placeholder.
+- [x] 3.3 Edit goal (`/goal/edit`): template chips with snap, editable name, rolling amount, date slider, priority pills, cap note that animates when the horizon crosses a band; retirement (age, spending) and safety net (months) variants; remove with confirm; rolls a reached goal's money into a new goal.
+- [x] 3.4 Glide path (`/goal/glide/[id]`): step chart draws year by year, today marker drops with a bounce, steps light up in turn.
+- [x] 3.5 Goal day (`/goal/day/[id]`): ring completes and bursts into coins; move to cash (goal marked reached), mark as spent (its share leaves each holding), or roll into a new goal.
+- [x] Browser tour with the Manish demo (`?demo=manish` in the web preview): every screen above, no errors.
+- [x] `.maestro/home-goals-manish.yaml` (needs a device; not run).
+
+### Decisions and notes
+- **Reorder vs "soonest first":** long-press reorder saves a custom order (`customGoalOrder`), and the subtitle then reads "In today's rupees, in your order." (drafted). The engine's funding order is unchanged (priority, then how far behind).
+- **"Add ₹X a month"** on 3.2 raises the goal's amount and the monthly total together, via a small confirm sheet (drafted copy). The full Apply sheet (6.2) is Phase 6.
+- Moments are checked when Home gains focus, 1.6s after it settles, at most one per visit.
+- Share buttons ("Share it, amounts hidden") don't do anything yet; share cards are part of Phase 9.
+
+### Drafted copy (Phase 4)
+- Home chip with no level yet: "Your first payday starts a streak"; body when every goal is on track: "Every goal is on track."; small gaps: "{goal} needs ₹X more a month to stay on track."
+- Market fall beyond a bad year: "About X% down. That's a bigger fall than your plan usually expects, but nothing needs selling. Your goals have time to recover."
+- Milestones other than 12 paydays: 6 paydays ("Half a year without missing a month. That habit is what moves every goal."), safety net full ("Your safety net is full." / "Months of spending, ready any time. From now, payday money flows on to your goals."), ₹1 Cr ("₹1 Cr put to work." / "Built one payday at a time. Gullu is proud of the habit, not the market.").
+- Goals list: "₹X a month, needs none", "No new money needed", safety net "₹X to go", "Reached {month}", custom-order subtitle.
+- Goal detail: "Edit goal", add sheet ("Add ₹X a month to {goal}?" / "Each payday then puts in:" / "Add it" / "Not now").
+- Edit goal: cap notes for 3–5, 5–7 and 7+ years; retirement "Spending a month, in today's rupees" / "I'll plan for it to last until 85."; safety net "Months of spending" / "That's ₹X in cash or liquid funds, ready any time."; "Remove this goal" / "Remove it for good".
+- Glide path body for other steps ("From {month} the goal is under 5/7 years away, so new money moves its mix down to N% equity. Nothing is sold to do it.") and when already under 3 years.
+- Goal day for non-travel goals: "Move it to cash, ready to use".

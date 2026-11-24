@@ -18,6 +18,7 @@ export const ICONS = {
   back: 'M15 5l-7 7 7 7',
   chevron: 'M9 5l7 7-7 7',
   check: 'M5 12.5l4.5 4.5L19 7.5',
+  plus: 'M12 5v14M5 12h14',
   income: 'M12 21V11M8 15l4-4 4 4M5 10V6a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4',
 } as const;
 export type IconName = keyof typeof ICONS;

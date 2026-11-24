@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { Body } from '@/components/Text';
 import { isMemoryDb, openDb } from '@/data/db';
+import { demoAppData } from '@/data/demo';
 import { FpsOverlay } from '@/dev/FpsOverlay';
 import { useBackgroundStore } from '@/state/background';
 import { setDb } from '@/state/dbHolder';
@@ -32,8 +33,10 @@ export default function RootLayout() {
     (async () => {
       setDb(await openDb());
       if (isMemoryDb) {
-        // Web preview: no encrypted database in the browser, so it starts fresh in memory.
-        applyAppData(null);
+        // Web preview: no encrypted database in the browser, so it starts fresh in memory
+        // (or with a demo persona: ?demo=manish / ?demo=sunita).
+        const demo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('demo') : null;
+        applyAppData(demo === 'manish' || demo === 'sunita' ? demoAppData(demo) : null);
         setReady(true);
         return;
       }
@@ -58,6 +61,11 @@ export default function RootLayout() {
         ) : fontsLoaded && ready ? (
           <ThemeProvider value={theme}>
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' }, animation: 'default' }}>
+              <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+              <Stack.Screen name="goal/[id]" options={{ animation: 'fade' }} />
+              <Stack.Screen name="goal/day/[id]" options={{ animation: 'fade' }} />
+              <Stack.Screen name="market-fall" options={{ animation: 'fade' }} />
+              <Stack.Screen name="milestone" options={{ animation: 'fade' }} />
               <Stack.Screen name="dev/moments/goal-detail" options={{ animation: 'fade' }} />
               <Stack.Screen name="dev/moments/receipt" options={{ animation: 'fade' }} />
             </Stack>

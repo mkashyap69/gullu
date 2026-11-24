@@ -167,6 +167,8 @@ function manishPaydays(): Payday[] {
 
 function manishHabits(): HabitEvent[] {
   return [
+    { kind: 'moment', data: { key: 'safety-full' }, at: ym(2027, 11) },
+    { kind: 'moment', data: { key: 'paydays-6' }, at: ym(2027, 11) },
     { kind: 'level', data: { level: 1 }, at: ym(2027, 5) },
     { kind: 'level', data: { level: 2 }, at: ym(2027, 7) },
     { kind: 'level', data: { level: 3 }, at: ym(2027, 12) },
