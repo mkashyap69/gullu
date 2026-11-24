@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<title>3.4 Glide path — Home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#FFFFFF;text-decoration:none}
+.h1{margin:0;font-size:34px;line-height:40px;font-weight:800;letter-spacing:-0.03em}
+.body{margin:0;font-size:17px;line-height:24px;color:rgba(255,255,255,.68)}
+.cap{font-size:14px;line-height:20px;color:rgba(255,255,255,.6)}
+.big{font-size:52px;line-height:56px;font-weight:800;letter-spacing:-0.04em}
+.btn{display:flex;align-items:center;justify-content:center;height:58px;border-radius:999px;background:#FFFFFF;color:#14080A !important;font-size:16px;font-weight:700}
+.ghost{display:flex;align-items:center;justify-content:center;min-height:44px;font-size:15px;color:rgba(255,255,255,.85)}
+.nv{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.55)}
+.row{display:flex;align-items:center;gap:14px;min-height:60px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.pill{display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;font-size:15px;color:rgba(255,255,255,.8)}
+.pill.on{background:#FFFFFF;color:#14080A}
+.track{height:4px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
+.rng{width:100%;height:36px;margin:0;accent-color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; background: linear-gradient(180deg, #07060D 0%, #140C3A 42%, #3A1D7A 78%, #6B3FC0 100%); font-family: Inter, system-ui, sans-serif; color: #FFFFFF; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; padding: 30px 24px 24px; box-sizing: border-box; overflow: hidden; position: relative">
+
+<header style="display: flex; justify-content: space-between; align-items: center; height: 44px"><a href="V-3-2-GoalDetail.dc.html" aria-label="Back" style="width: 44px; height: 44px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a><span></span></header>
+<div style="display: flex; align-items: center; gap: 8px; margin-top: 12px"><span class="dot" style="background: #FF8A4C"></span><span class="cap" style="font-size: 15px">Home · Dec 2031</span></div>
+<h1 class="h1" style="margin-top: 8px">Less equity as the date gets closer.</h1>
+<p class="body" style="margin-top: 10px">From Dec 2028 the goal is under 3 years away, so new money moves its mix down to 20% equity. Nothing is sold to do it.</p>
+<svg width="342" height="200" viewBox="0 0 342 200" role="img" aria-label="Equity share: 40% now, 20% from December 2028 to the goal in December 2031" style="display: block; margin-top: 26px">
+  <line x1="0" y1="170" x2="342" y2="170" stroke="rgba(255,255,255,.3)"></line>
+  <path d="M0 50 H64 V110 H342" fill="none" stroke="#FFFFFF" stroke-width="3"></path>
+  <path d="M0 50 H64 V110 H342 V170 H0 Z" fill="#FFFFFF" fill-opacity="0.12"></path>
+  <circle cx="0" cy="50" r="6" fill="#FF8A4C"></circle>
+  <text x="10" y="40" font-size="13" font-weight="700" fill="#FFFFFF" font-family="Inter, sans-serif">40% today</text>
+  <text x="74" y="100" font-size="13" fill="#FFFFFF" font-family="Inter, sans-serif">20% from Dec 2028</text>
+  <text x="0" y="190" font-size="12" fill="rgba(255,255,255,.6)" font-family="Inter, sans-serif">Apr 2028</text>
+  <text x="342" y="190" font-size="12" fill="rgba(255,255,255,.6)" text-anchor="end" font-family="Inter, sans-serif">Dec 2031</text>
+</svg>
+<p class="cap" style="margin: 14px 0 0">Equity share of this goal's money. The rest is debt and cash.</p>
+<a class="btn" href="V-3-2-GoalDetail.dc.html" style="margin-top: auto">Got it</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

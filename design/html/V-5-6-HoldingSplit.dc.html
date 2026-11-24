@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<title>5.6 Holding split across goals</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#FFFFFF;text-decoration:none}
+.h1{margin:0;font-size:34px;line-height:40px;font-weight:800;letter-spacing:-0.03em}
+.body{margin:0;font-size:17px;line-height:24px;color:rgba(255,255,255,.68)}
+.cap{font-size:14px;line-height:20px;color:rgba(255,255,255,.6)}
+.big{font-size:52px;line-height:56px;font-weight:800;letter-spacing:-0.04em}
+.btn{display:flex;align-items:center;justify-content:center;height:58px;border-radius:999px;background:#FFFFFF;color:#14080A !important;font-size:16px;font-weight:700}
+.ghost{display:flex;align-items:center;justify-content:center;min-height:44px;font-size:15px;color:rgba(255,255,255,.85)}
+.nv{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.55)}
+.row{display:flex;align-items:center;gap:14px;min-height:60px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.pill{display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;font-size:15px;color:rgba(255,255,255,.8)}
+.pill.on{background:#FFFFFF;color:#14080A}
+.track{height:4px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
+.rng{width:100%;height:36px;margin:0;accent-color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; background: linear-gradient(180deg, #07060D 0%, #0E0A24 60%, #1B1240 100%); font-family: Inter, system-ui, sans-serif; color: #FFFFFF; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; padding: 30px 24px 24px; box-sizing: border-box; overflow: hidden; position: relative">
+
+<header style="display: flex; justify-content: space-between; align-items: center; height: 44px"><a href="V-5-3-Holdings.dc.html" aria-label="Back" style="width: 44px; height: 44px; display: flex; align-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a><span></span></header>
+<div style="display: flex; align-items: center; gap: 8px; margin-top: 12px"><span class="dot" style="background: #19C463"></span><span class="cap" style="font-size: 15px">Indian equity · index fund</span></div>
+<h1 class="h1" style="margin-top: 8px">Nifty 50 index fund</h1>
+<div class="big" style="margin-top: 6px">₹12.9 L</div>
+<p class="body" style="margin-top: 10px">One holding can serve more than one goal. Set how much of it belongs to each.</p>
+<div style="margin-top: 22px">
+  <div style="margin-top: 14px"><div style="display: flex; justify-content: space-between; align-items: baseline"><label style="font-size: 15px; color: rgba(255,255,255,.75)">Home</label><span style="font-size: 17px; font-weight: 700">40% · ₹5.2 L</span></div><input class="rng" type="range" min="0" max="100" value="40" aria-label="Home"></div>
+  <div style="margin-top: 14px"><div style="display: flex; justify-content: space-between; align-items: baseline"><label style="font-size: 15px; color: rgba(255,255,255,.75)">Retirement</label><span style="font-size: 17px; font-weight: 700">60% · ₹7.7 L</span></div><input class="rng" type="range" min="0" max="100" value="60" aria-label="Retirement"></div>
+</div>
+<div style="display: flex; height: 14px; border-radius: 7px; overflow: hidden; margin-top: 18px" role="img" aria-label="Home 40%, Retirement 60%"><span style="width: 40%; background: #FF8A4C"></span><span style="width: 60%; background: #8B7CF6"></span></div>
+<p class="cap" style="margin: 10px 0 0">Shares always add up to 100%. Unassigned money counts towards Retirement.</p>
+<a class="ghost" href="V-5-6-HoldingSplit.dc.html" style="justify-content: flex-start">+ Add another goal</a>
+<a class="btn" href="V-5-3-Holdings.dc.html" style="margin-top: auto">Save</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

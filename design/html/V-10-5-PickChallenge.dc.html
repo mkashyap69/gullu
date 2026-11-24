@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<title>10.5 Pick a challenge</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#FFFFFF;text-decoration:none}
+.h1{margin:0;font-size:34px;line-height:40px;font-weight:800;letter-spacing:-0.03em}
+.body{margin:0;font-size:17px;line-height:24px;color:rgba(255,255,255,.68)}
+.cap{font-size:14px;line-height:20px;color:rgba(255,255,255,.6)}
+.big{font-size:52px;line-height:56px;font-weight:800;letter-spacing:-0.04em}
+.btn{display:flex;align-items:center;justify-content:center;height:58px;border-radius:999px;background:#FFFFFF;color:#14080A !important;font-size:16px;font-weight:700}
+.ghost{display:flex;align-items:center;justify-content:center;min-height:44px;font-size:15px;color:rgba(255,255,255,.85)}
+.nv{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.55)}
+.row{display:flex;align-items:center;gap:14px;min-height:60px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.pill{display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;font-size:15px;color:rgba(255,255,255,.8)}
+.pill.on{background:#FFFFFF;color:#14080A}
+.track{height:4px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
+.rng{width:100%;height:36px;margin:0;accent-color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; background: linear-gradient(180deg, #07060D 0%, #140C3A 42%, #3A1D7A 78%, #6B3FC0 100%); font-family: Inter, system-ui, sans-serif; color: #FFFFFF; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; padding: 30px 24px 24px; box-sizing: border-box; overflow: hidden; position: relative">
+
+<div style="position: absolute; inset: 0; background: rgba(4,3,12,.55)"></div>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; background: #16123A; border-radius: 32px 32px 0 0; padding: 26px 24px 28px; display: flex; flex-direction: column">
+  <span style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.25)"></span>
+  <h1 class="h1" style="margin-top: 20px; font-size: 28px; line-height: 34px">Pick one you'll actually do.</h1>
+  <p class="body" style="margin-top: 8px">Your own promise to yourself. Gullu just keeps count.</p>
+  <div style="margin-top: 14px"><div class="row" style="min-height: 60px"><span style="display: flex; flex-direction: column"><span style="font-size: 17px">Raise my SIP 10% at my appraisal</span><span class="cap">You pick the month</span></span><span style="flex: 1"></span><span role="radio" aria-checked="true" aria-label="Raise my SIP 10% at my appraisal" style="width: 26px; height: 26px; border-radius: 50%; flex: none; background: #FFFFFF; box-shadow: inset 0 0 0 7px #16123A, 0 0 0 2px #FFFFFF"></span></div><div class="row" style="min-height: 60px"><span style="display: flex; flex-direction: column"><span style="font-size: 17px">Update values every month for 3 months</span><span class="cap">Keeps your plan accurate</span></span><span style="flex: 1"></span><span role="radio" aria-checked="false" aria-label="Update values every month for 3 months" style="width: 26px; height: 26px; border-radius: 50%; flex: none; border: 2px solid rgba(255,255,255,.45)"></span></div><div class="row" style="min-height: 60px"><span style="display: flex; flex-direction: column"><span style="font-size: 17px">Learn 4 money cards this month</span><span class="cap">About 1 minute each</span></span><span style="flex: 1"></span><span role="radio" aria-checked="false" aria-label="Learn 4 money cards this month" style="width: 26px; height: 26px; border-radius: 50%; flex: none; border: 2px solid rgba(255,255,255,.45)"></span></div><div class="row" style="min-height: 60px"><span style="display: flex; flex-direction: column"><span style="font-size: 17px">No new loan this year</span><span class="cap">Protects every goal</span></span><span style="flex: 1"></span><span role="radio" aria-checked="false" aria-label="No new loan this year" style="width: 26px; height: 26px; border-radius: 50%; flex: none; border: 2px solid rgba(255,255,255,.45)"></span></div><div class="row" style="min-height: 60px"><span style="display: flex; flex-direction: column"><span style="font-size: 17px">Put my bonus to work</span><span class="cap">Split it across goals</span></span><span style="flex: 1"></span><span role="radio" aria-checked="false" aria-label="Put my bonus to work" style="width: 26px; height: 26px; border-radius: 50%; flex: none; border: 2px solid rgba(255,255,255,.45)"></span></div></div>
+  <a class="btn" href="V-10-4-Streak.dc.html" style="margin-top: 20px">Start this challenge</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
