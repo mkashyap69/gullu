@@ -39,7 +39,7 @@ export type Profile = {
   ageAt: YM;
   work: Work;
   dependents: number;
-  /** Day of month money lands (1–31), or 0 for last working day. */
+  /** Day of month money lands (1–31), 0 for the last day, -1 when it varies. */
   paydayDay: number;
   stage: Stage;
   riskCapacity: RiskProfile;
@@ -48,6 +48,10 @@ export type Profile = {
   riskOverride: RiskProfile | null;
   riskCheckedAt: YM | null;
   monthlyExpenses: number;
+  /** Take-home income per month (capacity check: EMIs as a share of income). */
+  monthlyIncome?: number;
+  /** Paid unevenly: payday follows money in, not a date. */
+  incomeVaries?: boolean;
   /** Total monthly amount the user puts in on payday. */
   monthly: number;
 };

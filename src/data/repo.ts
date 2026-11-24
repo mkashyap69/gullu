@@ -54,6 +54,8 @@ export type AppData = {
   paydays: Payday[];
   habits: HabitEvent[];
   snapshots: ValueSnapshot[];
+  /** Pinned "today" (demo personas only); real plans use the current month. */
+  today?: number;
 };
 
 const b = (v: boolean) => (v ? 1 : 0);
@@ -62,9 +64,9 @@ const b = (v: boolean) => (v ? 1 : 0);
 
 export async function saveProfile(db: SqlDb, p: Profile): Promise<void> {
   await db.runAsync(
-    `INSERT OR REPLACE INTO profile (id, name, age, ageAt, work, dependents, paydayDay, stage, riskCapacity, riskTolerance, riskProfile, riskOverride, riskCheckedAt, monthlyExpenses, monthly)
-     VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [p.name, p.age, p.ageAt, p.work, p.dependents, p.paydayDay, p.stage, p.riskCapacity, p.riskTolerance, effectiveRisk(p), p.riskOverride, p.riskCheckedAt, p.monthlyExpenses, p.monthly],
+    `INSERT OR REPLACE INTO profile (id, name, age, ageAt, work, dependents, paydayDay, stage, riskCapacity, riskTolerance, riskProfile, riskOverride, riskCheckedAt, monthlyExpenses, monthly, monthlyIncome, incomeVaries)
+     VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [p.name, p.age, p.ageAt, p.work, p.dependents, p.paydayDay, p.stage, p.riskCapacity, p.riskTolerance, effectiveRisk(p), p.riskOverride, p.riskCheckedAt, p.monthlyExpenses, p.monthly, p.monthlyIncome ?? null, b(!!p.incomeVaries)],
   );
 }
 
@@ -163,6 +165,7 @@ export async function replaceAll(db: SqlDb, data: AppData): Promise<void> {
     for (const e of data.habits) await addHabit(db, e);
     for (const s of data.snapshots) await addSnapshot(db, s);
     await saveSettings(db, data.settings);
+    if (data.today != null) await saveSettingValues(db, { 'plan.today': data.today });
     await db.execAsync('COMMIT');
   } catch (e) {
     await db.execAsync('ROLLBACK');
@@ -193,6 +196,8 @@ export async function loadAll(db: SqlDb): Promise<AppData | null> {
     riskCheckedAt: p.riskCheckedAt == null ? null : num(p.riskCheckedAt),
     monthlyExpenses: num(p.monthlyExpenses),
     monthly: num(p.monthly),
+    ...(p.monthlyIncome != null ? { monthlyIncome: num(p.monthlyIncome) } : {}),
+    ...(num(p.incomeVaries) === 1 ? { incomeVaries: true } : {}),
   };
   const settingRows = await db.getAllAsync<{ key: string; value: string }>('SELECT key, value FROM settings', []);
   const kv = new Map(settingRows.map((r) => [r.key, JSON.parse(r.value) as string | number | boolean]));
@@ -274,7 +279,8 @@ export async function loadAll(db: SqlDb): Promise<AppData | null> {
     const v = kv.get(`app.${k}`);
     if (typeof v === 'boolean') settings[k] = v;
   }
-  return { input: { profile, assumptions, goals, holdings, holdingGoals, flowRules, loans }, settings, paydays, habits, snapshots };
+  const pinned = kv.get('plan.today');
+  return { input: { profile, assumptions, goals, holdings, holdingGoals, flowRules, loans }, settings, paydays, habits, snapshots, ...(typeof pinned === 'number' ? { today: pinned } : {}) };
 }
 
 /** Everything as plain JSON for export (Privacy screen). */

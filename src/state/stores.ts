@@ -13,12 +13,15 @@ import { getDb } from './dbHolder';
 
 type ProfileState = {
   profile: Profile | null;
+  /** Demo personas pin "today"; null means the real current month. */
+  pinnedToday: number | null;
   assumptions: Assumptions | null;
   setProfile: (p: Profile) => Promise<void>;
   setAssumptions: (a: Assumptions) => Promise<void>;
 };
 export const useProfileStore = create<ProfileState>()((set) => ({
   profile: null,
+  pinnedToday: null,
   assumptions: null,
   setProfile: async (p) => {
     await repo.saveProfile(getDb(), p);
@@ -132,7 +135,7 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
 
 /** Replaces every store's state with `data` (after hydrate or a demo load). */
 export function applyAppData(data: AppData | null): void {
-  useProfileStore.setState({ profile: data?.input.profile ?? null, assumptions: data?.input.assumptions ?? null });
+  useProfileStore.setState({ profile: data?.input.profile ?? null, assumptions: data?.input.assumptions ?? null, pinnedToday: data?.today ?? null });
   useGoalsStore.setState({ goals: data?.input.goals ?? [], flowRules: data?.input.flowRules ?? [] });
   useHoldingsStore.setState({
     holdings: data?.input.holdings ?? [],

@@ -23,7 +23,12 @@ export function PrimaryButton({
   breathe = false,
   pulse = 0,
   accessibilityHint,
+  disabled = false,
+  testID,
 }: {
+  /** Dimmed and not tappable until the screen has what it needs. */
+  disabled?: boolean;
+  testID?: string;
   label: string;
   onPress?: () => void;
   state?: ButtonState;
@@ -66,15 +71,16 @@ export function PrimaryButton({
   return (
     <View onLayout={(e: LayoutChangeEvent) => setW(e.nativeEvent.layout.width)} style={styles.slot}>
       <PressScale
-        haptic="press"
-        onPress={state === 'idle' ? onPress : undefined}
+        testID={testID}
+        onPress={state === 'idle' && !disabled ? onPress : undefined}
+        haptic={disabled ? null : 'press'}
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityHint={accessibilityHint}
-        accessibilityState={{ busy: state === 'loading' }}
+        accessibilityState={{ busy: state === 'loading', disabled }}
         style={styles.center}
       >
-        <Animated.View style={[styles.pill, pillStyle]}>
+        <Animated.View style={[styles.pill, pillStyle, disabled && styles.disabled]}>
           {state === 'idle' ? (
             <Animated.View key="l" entering={FadeIn.duration(duration.fast)} exiting={FadeOut.duration(duration.instant)}>
               <Label color={colors.ink} numberOfLines={1}>
@@ -119,5 +125,6 @@ const styles = StyleSheet.create({
     shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 0 },
   },
+  disabled: { opacity: 0.45 },
   ghost: { minHeight: components.ghostButton.minHeight, justifyContent: 'center', paddingHorizontal: 12 },
 });

@@ -10,11 +10,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ScreenBackground } from '@/components/ScreenBackground';
 import { Body } from '@/components/Text';
 import { isMemoryDb, openDb } from '@/data/db';
-import { demoAppData } from '@/data/demo';
 import { FpsOverlay } from '@/dev/FpsOverlay';
 import { useBackgroundStore } from '@/state/background';
 import { setDb } from '@/state/dbHolder';
-import { applyAppData, hydrate, loadDemo, useProfileStore, useSettingsStore } from '@/state/stores';
+import { applyAppData, hydrate, useSettingsStore } from '@/state/stores';
 import { interFonts } from '@/theme/fonts';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -33,14 +32,12 @@ export default function RootLayout() {
     (async () => {
       setDb(await openDb());
       if (isMemoryDb) {
-        // Web preview: no encrypted database in the browser; show the Manish demo from memory.
-        applyAppData(demoAppData('manish'));
+        // Web preview: no encrypted database in the browser, so it starts fresh in memory.
+        applyAppData(null);
         setReady(true);
         return;
       }
       await hydrate();
-      // Until onboarding exists (Phase 3), a fresh install starts with the Manish demo.
-      if (!useProfileStore.getState().profile) await loadDemo(demoAppData('manish'));
       setReady(true);
     })().catch((e: unknown) => setError(String(e)));
   }, []);

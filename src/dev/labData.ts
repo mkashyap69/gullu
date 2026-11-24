@@ -4,6 +4,7 @@
  */
 import { commitmentsThisMonth, splitPayday, type Plan } from '../engine/plan';
 import type { Affordability, PlanInput } from '../engine/types';
+import { goalColor } from '../lib/goalColors';
 import { colors } from '../theme/tokens';
 
 export const SHORT_NAMES: Record<string, string> = { "Child's education": 'Education', 'Japan trip': 'Trip' };
@@ -28,7 +29,9 @@ export function paydaySlices(input: PlanInput, amount: number): PaydaySlice[] {
 /** The same accent a goal gets on Payday, for its ring. */
 export function goalAccent(input: PlanInput, goalId: string): string {
   const s = paydaySlices(input, input.profile.monthly).find((x) => x.id === goalId);
-  return s?.color ?? colors.goal[0];
+  if (s) return s.color;
+  const g = input.goals.find((x) => x.id === goalId);
+  return g ? goalColor(g) : colors.goal[0];
 }
 
 export const WORD: Record<Affordability, string> = { comfortable: 'Comfortable', manageable: 'Manageable', stretch: 'Stretch' };

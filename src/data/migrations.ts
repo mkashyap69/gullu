@@ -36,6 +36,11 @@ export const MIGRATIONS: string[] = [
   CREATE TABLE habit (id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, data_json TEXT NOT NULL, at INTEGER NOT NULL);
   CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
   `,
+  // 2 · onboarding asks income, and whether income varies
+  `
+  ALTER TABLE profile ADD COLUMN monthlyIncome REAL;
+  ALTER TABLE profile ADD COLUMN incomeVaries INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export async function migrate(db: SqlDb): Promise<number> {

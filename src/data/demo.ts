@@ -198,5 +198,6 @@ export function demoAppData(who: 'manish' | 'sunita'): AppData {
     paydays: who === 'manish' ? manishPaydays() : [],
     habits: who === 'manish' ? manishHabits() : [],
     snapshots,
+    today: DEMO_TODAY,
   };
 }

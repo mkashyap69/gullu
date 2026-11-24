@@ -39,6 +39,8 @@ export type AmountProps = {
   animate?: 'countUp' | 'odometer' | 'none';
   /** Count-up length: duration.slow … duration.draw. */
   countMs?: number;
+  /** Where a count starts (default 0); count-downs start above `value`. */
+  countFrom?: number;
   delay?: number;
   /** Ignore Hide amounts (never used for real rupee figures; only for dev galleries). */
   alwaysShow?: boolean;
@@ -46,16 +48,17 @@ export type AmountProps = {
   accessibilityLabel?: string;
 };
 
-function CountUp({ value, compact, signed, style, countMs, delay = 0 }: { value: number; compact?: boolean; signed?: boolean; style: TextStyle[]; countMs: number; delay?: number }) {
+function CountUp({ value, compact, signed, style, countMs, delay = 0, from = 0 }: { value: number; compact?: boolean; signed?: boolean; style: TextStyle[]; countMs: number; delay?: number; from?: number }) {
   const reduce = useReduceMotion();
-  const v = useSharedValue(reduce ? value : 0);
+  const v = useSharedValue(reduce ? value : from);
   useEffect(() => {
     if (reduce) {
       v.value = value;
       return;
     }
+    v.value = from;
     v.value = withDelay(delay, withTiming(value, { duration: countMs, easing: easing.out }));
-  }, [value, reduce, countMs, delay, v]);
+  }, [value, reduce, countMs, delay, from, v]);
   const animatedProps = useAnimatedProps(() => {
     // Round on the way, land exactly on the final value.
     const shown = Math.abs(v.value - value) < 0.5 ? value : Math.round(v.value);
@@ -70,7 +73,7 @@ function CountUp({ value, compact, signed, style, countMs, delay = 0 }: { value:
       <AnimatedTextInput
         editable={false}
         underlineColorAndroid="transparent"
-        defaultValue={formatINR(reduce ? value : 0, { compact, signed })}
+        defaultValue={formatINR(reduce ? value : from, { compact, signed })}
         animatedProps={animatedProps}
         style={[...style, styles.input, styles.overlay]}
         maxFontSizeMultiplier={1.15}
@@ -128,6 +131,7 @@ export function Amount({
   weight,
   animate = 'none',
   countMs = duration.draw,
+  countFrom,
   delay,
   alwaysShow,
   style,
@@ -159,7 +163,7 @@ export function Amount({
     <View accessible accessibilityLabel={label} style={styles.wrap}>
       <Animated.View style={digitsStyle} importantForAccessibility="no-hide-descendants">
         {animate === 'countUp' ? (
-          <CountUp value={value} compact={compact} signed={signed} style={base} countMs={countMs} delay={delay} />
+          <CountUp value={value} compact={compact} signed={signed} style={base} countMs={countMs} delay={delay} from={countFrom} />
         ) : animate === 'odometer' ? (
           <Odometer text={text} style={base} lineHeight={lineHeight} />
         ) : (

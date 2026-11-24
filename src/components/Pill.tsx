@@ -21,7 +21,7 @@ export function Pill({ label, selected, onPress }: { label: string; selected?: b
   );
 }
 
-export function SegmentedPills<T extends string>({ options, value, onChange }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+export function SegmentedPills<T extends string>({ options, value, onChange, testID }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void; testID?: string }) {
   const reduce = useReduceMotion();
   const [frames, setFrames] = useState<Record<string, { x: number; y: number; width: number }>>({});
   const x = useSharedValue(0);
@@ -47,6 +47,7 @@ export function SegmentedPills<T extends string>({ options, value, onChange }: {
       {options.map((o) => (
         <PressScale
           key={o.value}
+          testID={testID ? `${testID}-${o.value}` : undefined}
           accessibilityRole="radio"
           accessibilityState={{ selected: o.value === value }}
           onPress={() => {

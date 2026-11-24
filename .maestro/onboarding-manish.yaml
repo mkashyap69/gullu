@@ -1,0 +1,115 @@
+# Phase 3 acceptance: a fresh install runs onboarding with Manish's inputs (seed/fixtures/personas.ts)
+# and lands on Home. Run on a dev or release build: maestro test .maestro/onboarding-manish.yaml
+appId: app.moneyplan
+name: Onboarding — Manish, fresh install to Home
+---
+- clearState
+- launchApp
+- extendedWaitUntil:
+    visible: "Hi, I'm Gullu."
+    timeout: 15000
+- tapOn: { id: welcome-start }
+
+# 1.2 About you
+- tapOn: { id: about-age-tap }
+- inputText: "32"
+- pressKey: Enter
+- tapOn: { id: about-work-salaried }
+- tapOn: { id: about-deps-2 }
+- tapOn: { id: about-payday-1 }
+- tapOn: { id: about-income }
+- inputText: "160000"
+- tapOn: { id: about-spending }
+- inputText: "50000"
+- hideKeyboard
+- tapOn: { id: about-next }
+
+# 1.3 Risk check (Manish: capacity Growth, tolerance Balanced → Balanced)
+- tapOn: { id: risk-stability-0 }
+- tapOn: { id: risk-savings-2 }
+- assertVisible: "Your ₹10 L falls to ₹7.5 L in a bad year. What do you do?"
+- tapOn: { id: risk-fall-2 }
+- tapOn: { id: risk-choice-1 }
+- tapOn: { id: risk-experience-1 }
+
+# 1.4 Goals: builder stage pre-ticks safety net, home, education, retirement, travel
+- assertVisible: "What are we saving for?"
+- tapOn: { id: goal-edit-travel }
+- tapOn: { id: goal-name }
+- eraseText: 20
+- inputText: "Japan trip"
+- hideKeyboard
+- tapOn: { id: goal-save }
+- tapOn: { id: goals-next }
+
+# 1.5 What you have (₹87.4 L across classes, car loan ₹3.1 L)
+- tapOn: { id: have-row-mf }
+- tapOn: { id: have-mf-in }
+- inputText: "3050000"
+- hideKeyboard
+- tapOn: { id: have-save }
+- tapOn: { id: have-row-stocks }
+- tapOn: { id: have-st-in }
+- inputText: "1690000"
+- tapOn: { id: have-st-us }
+- inputText: "550000"
+- hideKeyboard
+- tapOn: { id: have-save }
+- tapOn: { id: have-row-ppf }
+- tapOn: { id: have-ppf }
+- inputText: "470000"
+- tapOn: { id: have-epf }
+- inputText: "450000"
+- hideKeyboard
+- tapOn: { id: have-save }
+- tapOn: { id: have-row-gold }
+- tapOn: { id: have-gold }
+- inputText: "650000"
+- hideKeyboard
+- tapOn: { id: have-save }
+- tapOn: { id: have-row-cash }
+- tapOn: { id: have-cash }
+- inputText: "320000"
+- tapOn: { id: have-debt }
+- inputText: "200000"
+- hideKeyboard
+- tapOn: { id: have-save }
+- tapOn: "+ Add something else"
+- tapOn: { id: other-kind-loan }
+- tapOn: { id: other-name }
+- inputText: "Car loan"
+- tapOn: { id: other-value }
+- inputText: "310000"
+- tapOn: { id: other-emi }
+- inputText: "14800"
+- tapOn: { id: other-rate }
+- inputText: "9.2"
+- hideKeyboard
+- tapOn: { id: other-save }
+- tapOn: { id: have-next }
+
+# 1.6 Monthly: ₹55,000, raise 10%
+- tapOn: { id: monthly-type }
+- tapOn: { id: monthly-typed }
+- eraseText: 10
+- inputText: "55000"
+- hideKeyboard
+- tapOn: { id: monthly-typed-save }
+- assertVisible: "₹55,000"
+- tapOn: { id: monthly-next }
+
+# 1.7 Answer. With the owner's onboarding rules (24 Nov 2026) Manish's existing money covers Home,
+# Education and the trip, so the engine says "4 of 4"; the designs show "3 of 4" (see docs/progress.md).
+- extendedWaitUntil:
+    visible:
+      text: "[0-9] of 4 goals are on track\\."
+    timeout: 10000
+- assertVisible: "Profile: Balanced. Not a guarantee or investment advice."
+- tapOn: { id: answer-done }
+
+# Notification pre-prompt, then Home
+- tapOn: "Not now"
+- extendedWaitUntil:
+    visible:
+      text: "[0-9] of 4 goals on track\\."
+    timeout: 10000

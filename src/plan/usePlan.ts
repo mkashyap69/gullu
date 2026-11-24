@@ -5,16 +5,17 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 
-import { DEMO_TODAY } from '../data/demo';
 import { CHOL, MC_PATHS, MC_SEED, computePlanFast, goalSpec, planGoals, withRanges, type Plan } from '../engine/plan';
 import type { McResult } from '../engine/core';
 import type { PlanInput } from '../engine/types';
 import { useGoalsStore, useHoldingsStore, useProfileStore } from '../state/stores';
 import { runMonteCarlo } from './runMonteCarlo';
 
-/** "Today" for the plan. The demo personas are pinned to 1 Apr 2028 so screens match the designs. */
+/** "Today" for the plan: the current month, or the pinned month for demo personas (1 Apr 2028). */
 export function useToday(): number {
-  return DEMO_TODAY;
+  const pinned = useProfileStore((s) => s.pinnedToday);
+  const d = new Date();
+  return pinned ?? d.getFullYear() * 12 + d.getMonth();
 }
 
 export function usePlanInput(): PlanInput | null {
