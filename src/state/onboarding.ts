@@ -8,7 +8,8 @@ import { DEMO_TODAY } from '../data/demo';
 import { replaceAll, DEFAULT_SETTINGS } from '../data/repo';
 import { ym } from '../engine/dates';
 import { buildPlanInput, defaultGoals, scoreRisk, stageFor, type HoldingEntry, type OnboardingAnswers, type RiskAnswerKey, type TemplateId } from '../engine/onboarding';
-import type { Loan, Work, YM } from '../engine/types';
+import type { Loan, PlanInput, Work, YM } from '../engine/types';
+import type { SplitSuggestion } from '../engine/suggestSplit';
 import { getDb } from './dbHolder';
 import { applyAppData } from './stores';
 
@@ -37,6 +38,12 @@ type State = {
   incomeVaries: boolean;
   needMonthly: number;
   pensionMonthly: number;
+  /** The split of existing money the user accepted or edited (null = use the suggestion). */
+  split: SplitSuggestion | null;
+  /** True once the user changed the suggestion. */
+  splitEdited: boolean;
+  /** The inputs the edited split was made for; edits are dropped if these change. */
+  splitFor: string;
   set: (p: Partial<State>) => void;
   reset: () => void;
 };
@@ -58,6 +65,9 @@ const initial = () => ({
   incomeVaries: false,
   needMonthly: 0,
   pensionMonthly: 0,
+  split: null as SplitSuggestion | null,
+  splitEdited: false,
+  splitFor: '',
 });
 
 export const useOnboarding = create<State>()((set) => ({
@@ -69,8 +79,31 @@ export const useOnboarding = create<State>()((set) => ({
 export const isRetired = (s: Pick<State, 'work'>) => s.work === 'retired';
 
 /** Input steps for the dots: retirees skip Goals (their goals are set for them). */
-export function steps(work: Work): ('about' | 'risk' | 'goals' | 'have' | 'monthly')[] {
-  return work === 'retired' ? ['about', 'risk', 'have', 'monthly'] : ['about', 'risk', 'goals', 'have', 'monthly'];
+export type Step = 'about' | 'risk' | 'goals' | 'have' | 'monthly' | 'split';
+
+/**
+ * Input steps for the dots: retirees skip Goals (their goals are set for them) and the split (three
+ * buckets instead); the split step only shows when there is existing money to share out.
+ */
+export function steps(work: Work, hasHoldings = false): Step[] {
+  if (work === 'retired') return ['about', 'risk', 'have', 'monthly'];
+  return hasHoldings ? ['about', 'risk', 'goals', 'have', 'monthly', 'split'] : ['about', 'risk', 'goals', 'have', 'monthly'];
+}
+
+/** Planned money entered on 1.5 (property, crypto and other aren't shared across goals). */
+export const hasPlannedHoldings = (s: Pick<State, 'holdings'>) => s.holdings.some((h) => h.value > 0 && h.assetClass !== 'other');
+
+/** Everything the split depends on, as a string (to tell when an edited split is out of date). */
+export function splitInputs(s: Pick<State, 'holdings' | 'goals' | 'monthly' | 'risk' | 'age' | 'monthlyExpenses' | 'work' | 'raisePct' | 'loans'>): string {
+  return JSON.stringify([s.holdings, s.goals?.filter((g) => g.ticked), s.monthly, s.risk, s.age, s.monthlyExpenses, s.work, s.raisePct, s.loans]);
+}
+
+/** The plan as it would be saved now, without saving (for the split step). */
+export function draftPlan(split?: SplitSuggestion | null): PlanInput {
+  const s = useOnboarding.getState();
+  const emis = s.loans.reduce((x, l) => x + l.emi, 0);
+  const risk = scoreRisk({ age: s.age, dependents: s.dependents, monthlyIncome: s.monthlyIncome, emis, answers: s.risk });
+  return buildPlanInput(answers(), risk, split ?? undefined);
 }
 
 /** Seed (or re-seed after the stage changed) the goal list for 1.4. */
@@ -113,9 +146,7 @@ export function answers(): OnboardingAnswers {
 export async function finishOnboarding(): Promise<void> {
   const s = useOnboarding.getState();
   const a = answers();
-  const emis = s.loans.reduce((x, l) => x + l.emi, 0);
-  const risk = scoreRisk({ age: s.age, dependents: s.dependents, monthlyIncome: s.monthlyIncome, emis, answers: s.risk });
-  const input = buildPlanInput(a, risk);
+  const input = draftPlan(s.split);
   const { today: _t, ...rest } = input;
   const data = {
     input: rest,

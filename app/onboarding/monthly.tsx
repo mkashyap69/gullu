@@ -20,7 +20,7 @@ import { Body, Caption, H1, Label } from '@/components/Text';
 import { Toggle } from '@/components/Toggle';
 import { formatINR } from '@/lib/formatINR';
 import { OnboardingTop } from '@/screens/onboarding/OnboardingTop';
-import { finishOnboarding, isRetired, useOnboarding } from '@/state/onboarding';
+import { finishOnboarding, hasPlannedHoldings, isRetired, useOnboarding } from '@/state/onboarding';
 import { duration } from '@/theme/motion';
 
 
@@ -33,6 +33,11 @@ export default function Monthly() {
   const ready = retired ? s.needMonthly > 0 : s.monthly > 0;
 
   const go = async () => {
+    // Existing money to share out: suggest the split first (owner direction, 24 Nov 2026).
+    if (!retired && hasPlannedHoldings(s)) {
+      router.push('/onboarding/split');
+      return;
+    }
     setBusy(true);
     try {
       await finishOnboarding();

@@ -7,7 +7,7 @@ Working log for the build. Each phase starts with a plan; items are ticked as th
 - **Payday split (asked 24 Nov 2026):** each goal's monthly amount is the user's own choice (the "actual"). The engine computes "required" per goal and flags shortfalls ("₹3,500 more fixes it"). Priority order only decides who is cut first in a short month and who gets extra money. This keeps every design number.
 - **Onboarding (asked 24 Nov 2026, before Phase 3):**
   - **First monthly split: by priority.** Commitments (PPF) and the safety-net top-up (its gap over 12 months) come off first; then each goal up to its required amount, must → should → nice, nearest date first; anything left goes to the goal furthest behind, else Retirement. The user edits per-goal amounts later.
-  - **Existing holdings: auto-assigned by horizon.** Cash (then debt) fills the safety net; then goals nearest-date first take what their mix can hold (short goals never take equity beyond their horizon cap), up to each goal's present-day need; the rest stays unassigned → Retirement. Editable later in 5.6.
+  - **Existing holdings: the app suggests a split from the user's data; the user accepts or edits it** (replaced "auto-assign by horizon" the same day, see "Suggested split" below).
   - **Income and spending are asked on 1.2** (two new rows). Spending sizes the safety net; income feeds the EMI share in the capacity score.
   - **Missing content is drafted and flagged** (list below).
 - **2.2 Market fall copy:** "Your SIP buys more units…" → **"Your SIP gets more units while prices are low. Stopping it now is the usual mistake."** (CLAUDE.md bans "buy").
@@ -81,14 +81,27 @@ Plan: pure engine pieces first (risk scoring, templates, holding auto-assign, pr
 - [x] `src/engine/onboarding.ts`: life stage, risk questions + capacity/tolerance scoring (lower wins), goal templates by stage, auto-assign by horizon, priority split, `buildPlanInput`, retiree three-bucket spec. Tests: Manish scores Growth/Balanced → Balanced; builder stage pre-ticks the right goals; split adds up; retiree path; safety net first.
 - [x] Migration 2: `profile.monthlyIncome`, `profile.incomeVaries`. Demo data now pins "today" (Apr 2028) in the database; real plans use the current month.
 - [x] Components: `StepDots` (active dot 8 → 22px), `ScrubValue` (age wheel / amount dial with odometer digits and haptic ticks; tap to type), `AmountField` (Indian formatting as you type), `Slider`, `TickCircle` (check path draws), `OptionCard` (press + glow), `Sheet` (spring.gentle over a 60% scrim, drag to dismiss). `PrimaryButton` gained `disabled` and `testID`; `SegmentedPills` gained `testID`.
-- [x] Screens: `/onboarding/welcome` (land + wave twice), `about`, `risk` (5 questions slide; ₹10 L counts down to ₹7.5 L as the line drops), `goals` (ticks, dims, Gullu peeks and nods, edit sheet, add your own), `have` (mini bars, group sheets, loans slide in negative, coin drops into Gullu), `monthly` (drag or type the amount, raise slider, income-varies toggle; retirees: need + pension), `answer` (shared with the Motion lab; retirees get an income answer), `notify` (pre-prompt, then `expo-notifications` permission).
+- [x] Screens (+ the split step above): `/onboarding/welcome` (land + wave twice), `about`, `risk` (5 questions slide; ₹10 L counts down to ₹7.5 L as the line drops), `goals` (ticks, dims, Gullu peeks and nods, edit sheet, add your own), `have` (mini bars, group sheets, loans slide in negative, coin drops into Gullu), `monthly` (drag or type the amount, raise slider, income-varies toggle; retirees: need + pension), `answer` (shared with the Motion lab; retirees get an income answer), `notify` (pre-prompt, then `expo-notifications` permission).
 - [x] Routing: a fresh install opens Welcome; a saved plan opens `/home`. `/home` shows the Phase 2 Home prototype until Phase 4. The dev hub moved to `/dev` (a "Dev tools" link on Welcome in dev builds only).
 - [x] Browser run-through with Manish's inputs, start to Home, and the retiree path: no errors.
 - [x] `.maestro/onboarding-manish.yaml`: fresh install → Home with Manish's inputs. **Not run yet** (Maestro needs a device/emulator).
 
-### Acceptance gap: "3 of 4" vs "4 of 4"
+### Suggested split of existing money (owner direction, 24 Nov 2026)
 
-With the onboarding rules chosen above, Manish's typed inputs give **4 of 4 goals on track**, not the designs' "3 of 4". Auto-assignment fills each nearer goal up to its present-day need, so Home (₹26 L), Education (₹40 L) and the trip are covered by what he already has, and Retirement takes the whole ₹42,500. The designs assume most of his money sits in Retirement. The Maestro flow asserts the headline pattern and says why. Options if you want the design numbers: cap how much existing money onboarding assigns to a goal (e.g. half its need), or assign by proportion instead.
+"Smart enough to decide from the user's data; the user can accept or edit." This replaces the first auto-assign rule.
+
+- **Engine** `src/engine/suggestSplit.ts`:
+  1. Cash, then debt, fills the safety net.
+  2. PPF, EPF and NPS stay with Retirement (locked until then anyway).
+  3. Everything else starts with Retirement; a chunk moves to another goal only if it lowers what the whole plan needs each month (the goal's relief minus what Retirement loses, must goals weighted a little higher).
+  4. Chunks are shaped like the goal's own mix. Goals under 3 years take safe money only; goals under 7 years never exceed their equity cap against the safe money they hold; goals 7+ years away may use equity where safe money has run out (existing portfolios often carry more equity than the plan's mix, and new money brings it back, 5.2).
+  5. It stops as soon as the monthly amount covers every goal, or when no move helps. Nothing is over-funded.
+- **Screen** `/onboarding/split` (after 1.6, only when there is planned money; not for retirees): "Here's how I'd use what you have." Each goal shows its amount, why ("Needs ₹X a month instead of ₹Y", "Covered. No new money needed", "Grows best from new money"), and a share bar. Tap a goal to change its amount (capped by what fits its mix, with a live "Then it needs ₹X a month"); the rest rebalances to Retirement. "Looks right" saves; "Go back to my suggestion" undoes edits. Edits are dropped if the inputs they were made for change.
+- **Manish (dated Apr 2028): 3 of 4 on track.** Home can only take ₹10.3 L (it's under 5 years away and he has little safe money), Education takes ₹30.8 L of equity and is covered, the trip takes ₹2.5 L, Retirement keeps ₹27 L plus PPF and EPF. The plan then needs ₹43,400 a month against ₹42,500, so the nice-to-have Japan trip is the one left short. (The designs' version has Education short; no rule reproduces that hand-picked split.)
+- The Maestro flow asserts the shape of the answer, not the count: the count depends on the month it runs in, because PPF is spread to 31 March (in November ₹30,000 of the ₹55,000 goes to PPF).
+
+### Open issue
+- Onboarding assumes nothing has been paid into PPF this financial year, so late in the year the PPF catch-up takes a big share of the monthly amount (₹30,000 of ₹55,000 in November). Phase 5's flow rules (4.7) should ask "Paid into PPF since April?"; for now it's editable only there.
 
 ### Drafted content (needs owner review)
 - **Risk questions 1, 2, 4, 5** and their answers (`RISK_QUESTIONS` in `src/engine/onboarding.ts`); scoring bands and points.
@@ -98,6 +111,8 @@ With the onboarding rules chosen above, Manish's typed inputs give **4 of 4 goal
 - **1.4**: "+ Add your own"; "Every plan keeps a safety net and retirement. You can change their amounts." (safety net and retirement can't be unticked: 01-PRODUCT makes them part of every plan, which overrides "Untick any").
 - **1.5** sheet labels (Indian equity funds, International funds, Goes into EPF each month, Savings and liquid funds, Debt funds and FDs, NPS/Property/Crypto/Other/A loan, Still to pay, EMI a month, Interest rate) and "Today's value is fine. You can split it by fund later."
 - **1.6**: income-varies "on" line "Payday now follows money in. Tell me when it lands and I'll split it."; retiree screen "How much do you need each month?" / "In today's rupees. I'll plan it to rise with prices." / "Pension and other income".
+- **Split step**: "Here's how I'd use what you have." / "Short goals get safe money, long goals keep growing. Tap a goal to change it." / reason lines / "From what you have" / "Up to ₹X fits this goal's mix." / "Then it needs ₹X a month." / "Looks right" / "Go back to my suggestion" / the summary line.
+- **1.7** status "Needs ₹X more a month" when a short goal's gap is under ₹1 L.
 - **1.7** body for other cases: "Every goal is on track.", "{n} goals need ₹X more a month between them.", "Your safety net fills first."; status "Covered by what you have".
 - **Retiree answer** (uses 7.1's wording): its growth-bucket return is a rough draft and says "likely until 105" for Sunita's numbers (persona: 98). Calibrate in Phase 8.
 - **Notification pre-prompt**: "Want a nudge on payday?" / "I'll remind you when money lands and when it's placed. At most 2 a week, never about markets. They're made on this phone, nothing is sent anywhere." / "Turn on reminders" / "Not now".

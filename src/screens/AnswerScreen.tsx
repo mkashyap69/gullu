@@ -38,7 +38,12 @@ const GULLU = 150;
 const SWEEP = signature.dialTicks * signature.dialTickGap; // the dial's full sweep
 
 function statusLine(g: GoalResult, today: number, hidden: boolean): { text: string; color: string } {
-  if (!g.onTrack) return { text: `Short by ${formatINR(Math.round(g.shortBy / 1e5) * 1e5, { compact: true, hidden })}`, color: colors.stretch };
+  if (!g.onTrack) {
+    const lakhs = Math.round(g.shortBy / 1e5) * 1e5;
+    // Under ₹1 L the gap reads better as a monthly amount (drafted copy).
+    if (lakhs <= 0) return { text: `Needs ${formatINR(Math.max(0, (g.requiredMonthly ?? 0) - g.actualMonthly), { hidden })} more a month`, color: colors.stretch };
+    return { text: `Short by ${formatINR(lakhs, { compact: true, hidden })}`, color: colors.stretch };
+  }
   if (g.couldStopAt) return { text: `Could stop at ${g.couldStopAt}`, color: colors.comfortable };
   // What the user already has covers it (no new money needed): drafted copy, docs/progress.md.
   if (g.requiredMonthly === 0) return { text: 'Covered by what you have', color: colors.comfortable };

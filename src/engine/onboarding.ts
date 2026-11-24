@@ -10,6 +10,7 @@
  */
 import { CLASS_INDEX, GLOBAL_SHARE_OF_EQUITY, N_CLASSES, PROFILE_MIX, monthlyRate, requiredMonthlyExact, roundUp500, targetWeights } from './core';
 import { goalSpec, planGoals, retirementDate } from './plan';
+import { suggestSplit, toHoldingGoals, type SplitSuggestion } from './suggestSplit';
 import {
   PLANNED_CLASSES,
   RISK_ORDER,
@@ -259,82 +260,6 @@ export function defaultGoals(a: Pick<OnboardingAnswers, 'today' | 'age' | 'work'
   });
 }
 
-// ---------- auto-assign holdings by horizon ----------
-
-/**
- * Present-day need: the balance that, growing at the goal's capped mix and with no new money,
- * reaches the goal's inflated target on its date.
- */
-function presentNeed(input: PlanInput, goal: Goal): number {
-  const spec = goalSpec(input, goal);
-  const w = targetWeights(spec.mix, spec.globalShare, spec.months / 12);
-  const r = w.reduce((acc, wk, k) => acc + wk * spec.ret[k], 0);
-  const target = spec.targetToday * Math.pow(1 + spec.infl, spec.months / 12);
-  return target / Math.pow(1 + monthlyRate(r), spec.months);
-}
-
-/**
- * Splits planned holdings across goals (owner decision): cash (then debt) fills the safety net;
- * then goals nearest-date first take what their mix can hold, up to their present-day need. Short
- * goals never take equity beyond their horizon cap. Whatever is left stays unassigned (→ Retirement).
- */
-export function autoAssignHoldings(input: PlanInput): HoldingGoal[] {
-  const holdings = input.holdings.filter((h) => h.planned && h.assetClass !== 'other');
-  const pool = [0, 0, 0, 0, 0];
-  for (const h of holdings) pool[CLASS_INDEX[h.assetClass as keyof typeof CLASS_INDEX]] += h.value;
-  const total = pool.slice();
-  const assigned = new Map<string, number[]>(); // goalId → per-class amounts
-  const take = (goalId: string, k: number, amount: number) => {
-    const a = Math.max(0, Math.min(amount, pool[k]));
-    if (a <= 0) return 0;
-    pool[k] -= a;
-    const row = assigned.get(goalId) ?? [0, 0, 0, 0, 0];
-    row[k] += a;
-    assigned.set(goalId, row);
-    return a;
-  };
-
-  // 1. Safety net: cash first, then debt.
-  const sn = input.goals.find((g) => g.isSafetyNet);
-  if (sn) {
-    let need = input.profile.monthlyExpenses * (sn.safetyMonths ?? safetyMonthsFor(input.profile.work));
-    need -= take(sn.id, CLASS_INDEX.cash, need);
-    take(sn.id, CLASS_INDEX.debt, need);
-  }
-
-  // 2. Other goals, nearest date first; retirement keeps the rest.
-  const risk = input.profile.riskOverride ?? RISK_ORDER[Math.min(RISK_ORDER.indexOf(input.profile.riskCapacity), RISK_ORDER.indexOf(input.profile.riskTolerance))];
-  const goals = planGoals(input)
-    .filter((g) => !g.isRetirement)
-    .sort((a, b) => a.date - b.date);
-  for (const g of goals) {
-    let need = presentNeed(input, g);
-    const years = Math.max(0, (g.date - input.today) / 12);
-    const w = targetWeights([...PROFILE_MIX[risk]], GLOBAL_SHARE_OF_EQUITY[risk], years);
-    // Phase A: by the goal's own mix.
-    const want = w.map((wk) => wk * need);
-    for (let k = 0; k < N_CLASSES; k++) need -= take(g.id, k, want[k]);
-    // Phase B: fill the rest from what suits the horizon (short goals: no extra equity).
-    const order = years < 7 ? [CLASS_INDEX.cash, CLASS_INDEX.debt, CLASS_INDEX.gold] : [CLASS_INDEX.indianEquity, CLASS_INDEX.globalEquity, CLASS_INDEX.debt, CLASS_INDEX.gold, CLASS_INDEX.cash];
-    for (const k of order) {
-      if (need <= 0) break;
-      need -= take(g.id, k, need);
-    }
-  }
-
-  // 3. Turn per-class amounts into holding → goal percentages (pro rata within each class).
-  const out: HoldingGoal[] = [];
-  for (const h of holdings) {
-    const k = CLASS_INDEX[h.assetClass as keyof typeof CLASS_INDEX];
-    if (total[k] <= 0) continue;
-    for (const [goalId, row] of assigned) {
-      const pct = Math.round((row[k] / total[k]) * 1000) / 10;
-      if (pct > 0) out.push({ holdingId: h.id, goalId, pct });
-    }
-  }
-  return out;
-}
-
 // ---------- first monthly split by priority ----------
 
 const PRIORITY_RANK: Record<Priority, number> = { must: 0, should: 1, nice: 2 };
@@ -380,10 +305,12 @@ export function allocateMonthly(input: PlanInput, commitments: number): Goal[] {
 
 // ---------- everything together ----------
 
-let seq = 0;
-const newId = (p: string) => `${p}-${Date.now().toString(36)}-${(seq++).toString(36)}`;
 
-export function buildPlanInput(a: OnboardingAnswers, risk: { capacity: RiskProfile; tolerance: RiskProfile }): PlanInput {
+/**
+ * The plan from onboarding. Existing money is shared across goals by `suggestSplit` unless the user
+ * accepted or edited a split on the "how I'd use what you have" step (pass it as `split`).
+ */
+export function buildPlanInput(a: OnboardingAnswers, risk: { capacity: RiskProfile; tolerance: RiskProfile }, split?: Pick<SplitSuggestion, 'split' | 'free'>): PlanInput {
   const stage = stageFor(a.age, a.work);
   const retired = a.work === 'retired';
   const profile: Profile = {
@@ -403,12 +330,13 @@ export function buildPlanInput(a: OnboardingAnswers, risk: { capacity: RiskProfi
     incomeVaries: a.incomeVaries || a.payday === -1,
     monthly: retired ? 0 : a.monthly,
   };
-  const goals: Goal[] = a.goals.map((g) => {
+  // Stable ids (template + position), so a split suggested on one screen matches the plan saved later.
+  const goals: Goal[] = a.goals.map((g, gi) => {
     const t = TEMPLATES[g.template];
     const isSafetyNet = g.template === 'safety';
     const isRetirement = g.template === 'retirement' || g.template === 'income';
     return {
-      id: newId(g.template),
+      id: `${g.template}-${gi}`,
       name: g.name,
       template: isSafetyNet ? 'safetyNet' : isRetirement ? 'retirement' : g.template === 'education' ? 'education' : g.template === 'home' ? 'home' : g.template === 'travel' ? 'travel' : g.template === 'health' ? 'health' : 'custom',
       targetToday: g.targetToday,
@@ -450,7 +378,7 @@ export function buildPlanInput(a: OnboardingAnswers, risk: { capacity: RiskProfi
     { id: 'r-goals', order: 4, enabled: true, type: 'goals' },
   ];
   let input: PlanInput = { today: a.today, profile, assumptions: defaultAssumptions(a.raisePct), goals, holdings, holdingGoals: [], flowRules, loans: a.loans };
-  input = { ...input, holdingGoals: autoAssignHoldings(input) };
+  input = { ...input, holdingGoals: toHoldingGoals(input, split ?? suggestSplit(input)) };
   if (!retired) {
     const cm = a.today % 12;
     const mlf = cm <= 2 ? 3 - cm : 15 - cm;

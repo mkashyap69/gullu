@@ -2,8 +2,9 @@
  * @jest-environment node
  */
 import { ym } from '../dates';
-import { autoAssignHoldings, buildPlanInput, capacityScore, defaultGoals, retireeWithdrawalSpec, scoreRisk, toleranceScore, type OnboardingAnswers } from '../onboarding';
+import { buildPlanInput, capacityScore, defaultGoals, retireeWithdrawalSpec, scoreRisk, toleranceScore, type OnboardingAnswers } from '../onboarding';
 import { withdrawalLikely } from '../withdrawal';
+import { maxForGoal, setGoalAmount, suggestSplit, toHoldingGoals } from '../suggestSplit';
 import { computePlan, safetyNet } from '../plan';
 
 const T = ym(2028, 4);
@@ -58,16 +59,35 @@ test('onboarding builds a plan: safety net full, split adds up, holdings assigne
   expect(safetyNet(input)?.full).toBe(true);
   const goalsMonthly = input.goals.reduce((a, g) => a + g.monthly, 0);
   expect(goalsMonthly + 12500).toBe(55000);
-  const split = autoAssignHoldings(input);
+  const sug = suggestSplit(input);
+  const split = toHoldingGoals(input, sug);
   for (const h of input.holdings) {
-    const sum = split.filter((s) => s.holdingId === h.id).reduce((a, s) => a + s.pct, 0);
+    const sum = split.filter((x) => x.holdingId === h.id).reduce((acc, x) => acc + x.pct, 0);
     expect(sum).toBeLessThanOrEqual(100.1);
   }
+  const by = Object.fromEntries(sug.goals.map((g) => [g.name, g]));
+  // Existing money lowers what the plan needs each month (from ~₹1.04 L to about ₹43,400).
+  const without = sug.goals.reduce((a, g) => a + g.requiredWithout, 0);
+  expect(sug.required).toBeLessThan(without / 2);
+  expect(by['Safety net'].amount).toBe(300000);
+  expect(by['Japan trip'].reason).toBe('lowers');
+  expect(by['Home'].requiredWith).toBeLessThan(by['Home'].requiredWithout);
+  // Home is under 5 years away, so it can only take as much as the safe money allows (40% equity cap);
+  // Education is 16 years away and takes equity. PPF and EPF stay with Retirement.
+  expect(by['Home'].amount).toBeLessThan(1100000);
+  expect(by["Child's education"].reason).toBe('covers');
+  expect(split.some((x) => x.holdingId === 'ppf' || x.holdingId === 'epf')).toBe(false);
+  // Mid goals keep equity within their horizon cap (Home, under 5 years: 40%).
+  const home = sug.split[input.goals.find((g) => g.name === 'Home')!.id];
+  expect((home[2] + home[3]) / home.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(0.4001);
+  // Short goals hold no equity.
+  expect(sug.split[input.goals.find((g) => g.name === 'Japan trip')!.id].slice(2, 4)).toEqual([0, 0]);
+  // Safe money is the limit: the plan needs a little more than ₹42,500, and the nice-to-have trip
+  // is the one left short (must goals are funded first).
   const plan = computePlan(input, 300);
-  // Owner rules: existing money covers Home, Education and the trip; Retirement takes the monthly
-  // amount. The designs' "3 of 4" assumed a different split (docs/progress.md).
-  expect(plan.onTrack).toBe(4);
-  expect(input.goals.find((g) => g.isRetirement)?.monthly).toBe(42500);
+  expect(plan.onTrack).toBe(3);
+  expect(plan.goals.find((g) => !g.onTrack)?.name).toBe('Japan trip');
+  expect(input.goals.reduce((x, g) => x + g.monthly, 0)).toBe(42500);
   expect(plan.total).toBe(4);
 });
 
@@ -106,4 +126,23 @@ test('allocateMonthly: safety net first, then must goals nearest-date first, nic
   expect(byName['Home']).toBe(35000); // the nearest must goal takes the rest
   expect(byName['Japan trip']).toBe(0);
   expect(input.goals.reduce((x, g) => x + g.monthly, 0)).toBe(60000);
+});
+
+test('the user can change a goal\'s share; the rest rebalances to Retirement', () => {
+  const input = buildPlanInput(manishAnswers(), { capacity: 'growth', tolerance: 'balanced' });
+  const sug = suggestSplit(input);
+  const edu = input.goals.find((g) => g.name === "Child's education")!;
+  const before = sug.goals.find((g) => g.goalId === edu.id)!.amount;
+  const less = setGoalAmount(input, sug, edu.id, 1200000);
+  const e = less.goals.find((g) => g.goalId === edu.id)!;
+  expect(Math.round(e.amount)).toBe(1200000);
+  expect(e.requiredWith).toBeGreaterThan(0); // now it needs new money again
+  const retireBefore = sug.goals.find((g) => g.reason === 'rest')!.amount;
+  const retireAfter = less.goals.find((g) => g.reason === 'rest')!.amount;
+  expect(Math.round(retireAfter - retireBefore)).toBe(Math.round(before - 1200000));
+  expect(maxForGoal(input, less, edu.id)).toBeGreaterThan(1200000);
+  const more = setGoalAmount(input, less, edu.id, 2000000);
+  expect(Math.round(more.goals.find((g) => g.goalId === edu.id)!.amount)).toBe(2000000);
+  const back = setGoalAmount(input, more, edu.id, 0);
+  expect(back.goals.find((g) => g.goalId === edu.id)!.amount).toBe(0);
 });

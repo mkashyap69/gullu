@@ -98,11 +98,25 @@ name: Onboarding — Manish, fresh install to Home
 - assertVisible: "₹55,000"
 - tapOn: { id: monthly-next }
 
-# 1.7 Answer. With the owner's onboarding rules (24 Nov 2026) Manish's existing money covers Home,
-# Education and the trip, so the engine says "4 of 4"; the designs show "3 of 4" (see docs/progress.md).
+# Suggested split of what he has (src/engine/suggestSplit.ts): safety net ₹3 L, the trip and Home
+# take safe money, Education grows from new money, the rest (with PPF and EPF) stays for Retirement.
+- assertVisible: "Here's how I'd use what you have."
+- tapOn: { id: split-row-education }
+- tapOn: { id: split-amount }
+- eraseText: 12
+- inputText: "1200000"
+- hideKeyboard
+- tapOn: { id: split-save }
+- assertVisible: "Go back to my suggestion"
+- tapOn: "Go back to my suggestion"
+- tapOn: { id: split-accept }
+
+# 1.7 Answer. The count depends on the month the flow runs in (PPF is spread to 31 March, so the
+# monthly budget changes); with Manish's data dated Apr 2028 it is "3 of 4" (unit test in
+# src/engine/__tests__/onboarding.test.ts). Here we check the shape of the answer.
 - extendedWaitUntil:
     visible:
-      text: "[0-9] of 4 goals are on track\\."
+      text: "[0-4] of 4 goals are on track\\."
     timeout: 10000
 - assertVisible: "Profile: Balanced. Not a guarantee or investment advice."
 - tapOn: { id: answer-done }
@@ -111,5 +125,5 @@ name: Onboarding — Manish, fresh install to Home
 - tapOn: "Not now"
 - extendedWaitUntil:
     visible:
-      text: "[0-9] of 4 goals on track\\."
+      text: "[0-4] of 4 goals on track\\."
     timeout: 10000
