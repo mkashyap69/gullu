@@ -16,3 +16,4 @@ coverage/
 .metro-health-check*
 npm-debug.*
 *.tsbuildinfo
+public/canvaskit.wasm

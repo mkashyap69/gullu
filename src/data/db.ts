@@ -11,6 +11,7 @@ import { migrate } from './migrations';
 import type { SqlDb } from './sql';
 
 export const DB_NAME = 'moneyplan.db';
+export const isMemoryDb = false;
 const KEY_NAME = 'moneyplan.dbkey.v1';
 
 let current: SQLite.SQLiteDatabase | null = null;

@@ -61,4 +61,7 @@ export const signature = {
   liftScale: 1.03,
   scrimOpacity: 0.6,
   particleBudget: 60,
+  bubbleBobPeriod: 2800, // Payday bubbles: gentle idle bob, each on its own phase
+  bubbleBobPx: 3,
+  breatheGlow: 1600, // "Keep going" soft breathing glow (market fall)
 } as const;

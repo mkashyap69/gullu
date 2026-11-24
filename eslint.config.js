@@ -10,6 +10,15 @@ module.exports = defineConfig([
     ignores: ['dist/*', 'reference/*', 'design/*', 'seed/*', 'node_modules/*', '.expo/*', 'coverage/*'],
   },
   {
+    // React Compiler is off (app.json): Reanimated shared values are mutable by design, and the
+    // compiler-oriented hook rules misread every `sv.value = …` as a bug.
+    rules: {
+      'react-hooks/immutability': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/set-state-in-effect': 'warn',
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-globals': [

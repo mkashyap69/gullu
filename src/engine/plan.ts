@@ -455,22 +455,35 @@ export function movesThisMonth(input: PlanInput, split: { goalId: string; amount
     PLANNED_CLASSES.forEach((cls, k) => {
       const add = bal[k] - before[k];
       if (add < 0.5) return;
-      const hs = input.holdings.filter(
-        (h) => h.planned && h.assetClass === cls && !commitmentIds.has(h.id) && (shares.get(h.id)?.get(goalId) ?? 0) > 0,
-      );
-      const weights = hs.map((h) => h.value * (shares.get(h.id)?.get(goalId) ?? 0));
-      const wsum = weights.reduce((a, b) => a + b, 0);
+      // Holdings that can take new money: planned, not a commitment (paid separately), not
+      // automatic (EPF fills itself from salary).
+      const open = (h: Holding) => h.planned && h.assetClass === cls && !commitmentIds.has(h.id) && !h.autoMonthly;
+      let hs = input.holdings.filter((h) => open(h) && (shares.get(h.id)?.get(goalId) ?? 0) > 0);
+      let weights = hs.map((h) => h.value * (shares.get(h.id)?.get(goalId) ?? 0));
+      if (hs.length === 0) {
+        // The goal has nothing of this kind yet: use the user's own biggest holding of the class.
+        const any = input.holdings.filter(open).sort((a, b) => b.value - a.value);
+        hs = any.slice(0, 1);
+        weights = hs.map(() => 1);
+      }
       if (hs.length === 0) {
         moves.push({ holdingId: '', goalId, assetClass: cls, amount: add });
         return;
       }
-      hs.forEach((h, i) => moves.push({ holdingId: h.id, goalId, assetClass: cls, amount: wsum > 0 ? (add * weights[i]) / wsum : add / hs.length }));
+      // Single stocks don't get new money by default: prefer funds when the goal has any.
+      const funds = hs.map((h, i) => ({ h, w: weights[i] })).filter((x) => !x.h.isStock);
+      const pick = funds.length ? funds : hs.map((h, i) => ({ h, w: weights[i] }));
+      const wsum = pick.reduce((a, x) => a + x.w, 0);
+      pick.forEach((x) => moves.push({ holdingId: x.h.id, goalId, assetClass: cls, amount: wsum > 0 ? (add * x.w) / wsum : add / pick.length }));
     });
   }
   return moves;
 }
 
-/** Moves grouped by holding, rounded to ₹100, for the check-in list. */
+/**
+ * Moves grouped by holding, rounded to ₹100 for the check-in list. The rounding remainder goes to
+ * the biggest line so the lines always add up to the exact total.
+ */
 export function movesByHolding(moves: MoveLine[]): { holdingId: string; assetClass: PlannedClass; amount: number }[] {
   const m = new Map<string, { holdingId: string; assetClass: PlannedClass; amount: number }>();
   for (const mv of moves) {
@@ -479,5 +492,9 @@ export function movesByHolding(moves: MoveLine[]): { holdingId: string; assetCla
     if (prev) prev.amount += mv.amount;
     else m.set(key, { holdingId: mv.holdingId, assetClass: mv.assetClass, amount: mv.amount });
   }
-  return [...m.values()].map((x) => ({ ...x, amount: Math.round(x.amount / 100) * 100 })).sort((a, b) => b.amount - a.amount);
+  const exact = [...m.values()].reduce((a, x) => a + x.amount, 0);
+  const out = [...m.values()].map((x) => ({ ...x, amount: Math.round(x.amount / 100) * 100 })).filter((x) => x.amount > 0).sort((a, b) => b.amount - a.amount);
+  const diff = Math.round(exact) - out.reduce((a, x) => a + x.amount, 0);
+  if (out.length && Math.abs(diff) < 100 * out.length) out[0].amount += diff;
+  return out;
 }

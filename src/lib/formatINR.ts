@@ -5,6 +5,7 @@
  *   formatINR(24000000, { compact: true }) → "₹2.4 Cr"
  * Compact: ≥ ₹1 L shows as L, ≥ ₹1 Cr as Cr, one decimal unless the value is whole.
  * Negative values use a true minus sign: "−₹12.2 L".
+ * Marked 'worklet' so count-ups can format on the UI thread.
  */
 export const HIDDEN_AMOUNT = '₹ ••••••';
 const LAKH = 1_00_000;
@@ -20,6 +21,7 @@ export type FormatINROptions = {
 };
 
 export function groupIndian(n: number): string {
+  'worklet';
   const s = Math.round(Math.abs(n)).toString();
   if (s.length <= 3) return s;
   const last3 = s.slice(-3);
@@ -34,11 +36,13 @@ export function groupIndian(n: number): string {
 }
 
 function oneDecimal(v: number): string {
+  'worklet';
   const r = Math.round(v * 10) / 10;
   return Number.isInteger(r) ? r.toFixed(0) : r.toFixed(1);
 }
 
 export function formatINR(value: number, opts: FormatINROptions = {}): string {
+  'worklet';
   if (opts.hidden) return HIDDEN_AMOUNT;
   const abs = Math.abs(value);
   const sign = value < 0 && Math.round(abs) !== 0 ? MINUS : opts.signed && value > 0 ? '+' : '';

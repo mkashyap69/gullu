@@ -32,9 +32,19 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-sqlite", { "useSQLCipher": true }],
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
       "expo-secure-store",
-      ["expo-local-authentication", { "faceIDPermission": "Money Plan uses Face ID to lock your plan." }],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Money Plan uses Face ID to lock your plan."
+        }
+      ],
       "expo-font",
       [
         "expo-splash-screen",
@@ -47,7 +57,7 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": false
     }
   }
 }

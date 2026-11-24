@@ -3,10 +3,9 @@
  */
 import { manishInput } from '../../data/demo';
 import { labelWithRange, ym } from '../dates';
-import { simulateMonteCarlo, makeRng } from '../core';
+import { makeRng, simulateDeterministic, simulateMonteCarlo } from '../core';
 import { CHOL, goalSpec } from '../plan';
 import { replayRows } from '../replay';
-import { simulateDeterministic } from '../core';
 
 test('seeded RNG is stable', () => {
   const a = makeRng(42);

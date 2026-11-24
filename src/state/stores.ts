@@ -151,5 +151,6 @@ export async function hydrate(): Promise<void> {
 
 export async function loadDemo(data: AppData): Promise<void> {
   await repo.replaceAll(getDb(), data);
-  await hydrate();
+  // Read back what was written; the in-memory web preview keeps nothing, so fall back to `data`.
+  applyAppData((await repo.loadAll(getDb())) ?? data);
 }

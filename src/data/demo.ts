@@ -187,8 +187,10 @@ export function demoAppData(who: 'manish' | 'sunita'): AppData {
   const { today: _today, ...rest } = input;
   const snapshots: AppData['snapshots'] = input.holdings.map((h) => ({ date: h.valueAt, holdingId: h.id, assetClass: h.assetClass, value: h.value }));
   if (who === 'manish') {
-    // The recorded high behind the market-fall moment (2.2): ₹87.0 L invested, now ₹74.8 L.
+    // Totals the user confirmed at check-in: the recorded high (₹87.0 L, Jan) and the 1 Apr value
+    // (₹74.8 L) behind the market-fall moment (2.2).
     snapshots.unshift({ date: ym(2028, 1), holdingId: null, assetClass: null, value: 8700000 });
+    snapshots.push({ date: DEMO_TODAY, holdingId: null, assetClass: null, value: 7480000 });
   }
   return {
     input: rest,

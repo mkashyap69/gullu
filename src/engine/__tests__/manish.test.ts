@@ -75,7 +75,8 @@ test('moves add up to the payday amount, PPF first', () => {
   const inp = manishInput();
   const moves = movesByHolding(movesThisMonth(inp, splitPayday(inp, 55000)));
   const total = moves.reduce((a, m) => a + m.amount, 0);
-  expect(Math.abs(total - 55000)).toBeLessThanOrEqual(400); // rounding to ₹100 per line
+  expect(total).toBe(55000);
+  expect(moves.every((m) => m.holdingId !== 'epf')).toBe(true); // EPF fills itself from salary
   expect(moves.find((m) => m.holdingId === 'ppf')?.amount).toBe(12500);
   expect(moves.every((m) => m.holdingId !== 'crypto')).toBe(true); // "other" never gets new money
 });
