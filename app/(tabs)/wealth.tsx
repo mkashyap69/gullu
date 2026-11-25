@@ -17,10 +17,11 @@ import { mixCheck, netWorth } from '@/engine/wealth';
 import { formatINR } from '@/lib/formatINR';
 import { Sparkline } from '@/motion-kit/Sparkline';
 import { usePlanInput } from '@/plan/usePlan';
-import { useHoldingsStore, useSettingsStore } from '@/state/stores';
+import { useHoldingsStore, useProfileStore, useSettingsStore } from '@/state/stores';
+import { Buckets } from '@/screens/retiree/Buckets';
 import { colors, layout } from '@/theme/tokens';
 
-export default function Wealth() {
+function WorkerWealth() {
   const input = usePlanInput();
   const snapshots = useHoldingsStore((s) => s.snapshots);
   const hidden = useSettingsStore((s) => s.hideAmounts);
@@ -77,6 +78,7 @@ export default function Wealth() {
   );
 }
 
+
 const styles = StyleSheet.create({
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { marginTop: 28 },
@@ -84,3 +86,9 @@ const styles = StyleSheet.create({
   drift: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   amber: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.stretch },
 });
+
+/** Retirees see their income plan here instead (7.x). */
+export default function Wealth() {
+  const retired = useProfileStore((s) => s.profile?.work === 'retired');
+  return retired ? <Buckets /> : <WorkerWealth />;
+}

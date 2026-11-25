@@ -8,7 +8,7 @@
  * - Income and expenses are asked on 1.2.
  * Drafted content (risk questions, templates) is listed in docs/progress.md for owner review.
  */
-import { PROFILE_MIX, requiredMonthlyExact, roundUp500 } from './core';
+import { CLASS_INDEX, CORRELATION, GLOBAL_SHARE_OF_EQUITY, N_CLASSES, PROFILE_MIX, requiredMonthlyExact, roundUp500, targetWeights } from './core';
 import { goalSpec, planGoals, retirementDate } from './plan';
 import { suggestSplit, toHoldingGoals, type SplitSuggestion } from './suggestSplit';
 import {
@@ -395,6 +395,25 @@ export { PLANNED_CLASSES };
  * Withdrawal plan for a retiree (DRAFT until Phase 8): cash covers the next 2 years of spending from
  * savings, income (low risk) years 3–7, growth the rest. Growth earns the profile's equity share.
  */
+/** Yearly fund costs taken off the growth bucket's return (drafted; see docs/progress.md). */
+export const FUND_COST_PCT = 0.4;
+
+/**
+ * The growth bucket holds the profile's long-run mix without its cash share. Its return is the
+ * weighted class return after fund costs; its volatility uses the class correlations, so a
+ * diversified bucket swings less than equity alone.
+ */
+export function growthBucket(a: Assumptions, risk: RiskProfile): { returnPct: number; volatilityPct: number } {
+  const w = targetWeights([...PROFILE_MIX[risk]], GLOBAL_SHARE_OF_EQUITY[risk], 99);
+  w[CLASS_INDEX.cash] = 0;
+  const sum = w.reduce((x, y) => x + y, 0) || 1;
+  const n = w.map((x) => x / sum);
+  const ret = PLANNED_CLASSES.reduce((x, c, k) => x + n[k] * a.returnPct[c], 0) - FUND_COST_PCT;
+  let v = 0;
+  for (let i = 0; i < N_CLASSES; i++) for (let j = 0; j < N_CLASSES; j++) v += n[i] * n[j] * a.volatilityPct[PLANNED_CLASSES[i]] * a.volatilityPct[PLANNED_CLASSES[j]] * CORRELATION[i * N_CLASSES + j];
+  return { returnPct: Math.round(ret * 100) / 100, volatilityPct: Math.round(Math.sqrt(v) * 100) / 100 };
+}
+
 export function retireeWithdrawalSpec(input: PlanInput) {
   const g = input.goals.find((x) => x.isRetirement);
   const spend = g?.retirement?.targetMonthly ?? input.profile.monthlyExpenses;
@@ -405,14 +424,14 @@ export function retireeWithdrawalSpec(input: PlanInput) {
   const income = Math.min(total - cash, 5 * draw);
   const growth = Math.max(0, total - cash - income);
   const risk = input.profile.riskOverride ?? RISK_ORDER[Math.min(RISK_ORDER.indexOf(input.profile.riskCapacity), RISK_ORDER.indexOf(input.profile.riskTolerance))];
-  const eq = Math.min(0.8, PROFILE_MIX[risk][0] * 1.4); // growth holds the plan's equity
+  const gb = growthBucket(input.assumptions, risk);
   return {
     buckets: { cash, income, growth },
     spendMonthly: spend,
     pensionMonthly: pension,
     inflationPct: input.assumptions.inflationPct,
-    returnPct: { cash: input.assumptions.returnPct.cash, income: input.assumptions.returnPct.debt, growth: eq * input.assumptions.returnPct.indianEquity + (1 - eq) * input.assumptions.returnPct.debt },
-    volatilityPct: { cash: 0.5, income: input.assumptions.volatilityPct.debt, growth: eq * input.assumptions.volatilityPct.indianEquity },
+    returnPct: { cash: input.assumptions.returnPct.cash, income: input.assumptions.returnPct.debt, growth: gb.returnPct },
+    volatilityPct: { cash: input.assumptions.volatilityPct.cash, income: input.assumptions.volatilityPct.debt, growth: gb.volatilityPct },
     startAge: input.profile.age,
     startMonth: input.today % 12,
     maxAge: 110,

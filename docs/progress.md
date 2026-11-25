@@ -235,3 +235,24 @@ Worked phase by phase, each with engine tests where there is logic, a browser ru
 - 8.3: hold hint, export sheet ("The file goes to your phone's share sheet…", "Everything, as JSON", "Holdings and goals, as CSV"), "Set a screen lock first." sheet, lock screen ("Money Plan is locked.", "Your plan stays private until you unlock it.", "Unlock").
 - 8.4: 20 of the 24 explainers (all but SIP, Glide path, PPF, Drawdown).
 - Goal detail with today's rupees off: "In {year} rupees, with prices rising N% a year."
+
+## Phase 8 · Retiree mode (7.1–7.3) — built
+
+- [x] Driven by `work = retired`: Home becomes 7.1 Income plan, the Payday tab becomes Income (7.3), Wealth becomes 7.2 Three buckets (with a Holdings row).
+- [x] `src/engine/income.ts` + tests: income plan (spend, pension, from savings, withdrawal rate, likely and almost-sure ages, buckets, April refill) and "I've withdrawn it" (cash holding pays the month; in April the refill moves from debt holdings, in proportion, into cash).
+- [x] **Calibration:** the retiree spec no longer uses a draft growth return. The growth bucket holds the profile's long-run mix without its cash share; its return is the weighted class return after fund costs, and its volatility uses the class correlations. For Sunita (Cautious) that's 8.75% and 6.2%, which gives **likely until 98, almost sure until 91** and buckets ₹15.6 L / ₹39 L / ₹1.85 Cr straight from her inputs, with no tuning. The onboarding retiree answer now says 98 too (was 105).
+- [x] Screens: 7.1 (ages count from today's age, pension and savings bars grow on the calm timing, the weak/likely range bar), 7.2 (Skia jars fill and settle with a slow wave; a drop travels from income to cash for the April refill), 7.3 (amount counts, the withdraw row pours, refill row tickable in April, "I've withdrawn it" records the month).
+- [x] Browser run with the Sunita demo: no errors.
+
+### Decisions and notes (Phase 8)
+- **Fund costs** of 0.4% a year are taken off the growth bucket's return (`FUND_COST_PCT`). Drafted; it's what makes the principled numbers match the persona.
+- **₹1.85 Cr on 7.2** shows as ₹1.8/₹1.9 Cr: 03-DESIGN-SYSTEM's rule is one decimal in compact form, and the rule wins over the PNG.
+- The Monte Carlo age (1,000 paths over ~46 years) runs a beat after first paint so the screen never waits for it; the headline shows the likely age first.
+- **Refill is ticked separately** from the withdrawal: it's recorded only if the user says it moved.
+- Jars grow with the square root of each bucket so the cash jar stays visible next to growth (the PNG's jar heights aren't proportional either).
+- Retiree tabs keep the Goals tab as designed.
+
+### Drafted copy (Phase 8)
+- 7.1: "Good afternoon / Good evening", the over-4% line ("Over 4% draws savings down faster; the ages above already show it.").
+- 7.2: Holdings row ("What's in each bucket, and its value").
+- 7.3: "Tap once you've moved it.", "Done for {Month}. See you next month."

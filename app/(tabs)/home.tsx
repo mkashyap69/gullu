@@ -40,8 +40,9 @@ import { useAmbient, useReduceMotion } from '@/motion/prefs';
 import { GoalRing } from '@/motion-kit/GoalRing';
 import { ringName, useLevel, usePaydayDue, useShown, useStreak } from '@/plan/selectors';
 import { usePlan, usePlanInput, usePlanNonce } from '@/plan/usePlan';
+import { IncomePlan } from '@/screens/retiree/IncomePlan';
 import { useScreenBackground } from '@/state/background';
-import { useHoldingsStore, useSettingsStore } from '@/state/stores';
+import { useHoldingsStore, useProfileStore, useSettingsStore } from '@/state/stores';
 import { duration, spring } from '@/theme/motion';
 import { colors, layout, radius } from '@/theme/tokens';
 
@@ -66,7 +67,7 @@ function CoinDrop() {
 }
 const PULL_MAX = 120;
 
-export default function Home() {
+function WorkerHome() {
   useScreenBackground('dusk');
   const insets = useSafeAreaInsets();
   const { plan } = usePlan();
@@ -232,3 +233,9 @@ const styles = StyleSheet.create({
   barText: { flexDirection: 'row', alignItems: 'center' },
   place: { backgroundColor: colors.white, borderRadius: radius.pill, paddingHorizontal: 22, height: 48, justifyContent: 'center' },
 });
+
+/** Retirees see their income plan here instead (7.x). */
+export default function Home() {
+  const retired = useProfileStore((s) => s.profile?.work === 'retired');
+  return retired ? <IncomePlan /> : <WorkerHome />;
+}
