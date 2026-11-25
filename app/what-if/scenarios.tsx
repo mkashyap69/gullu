@@ -13,11 +13,12 @@ import { Screen } from '@/components/Screen';
 import { Body, Caption, H1, Label } from '@/components/Text';
 import { LabTop } from '@/dev/LabTop';
 import { compareScenario, describeChanges, scenarioResult, type Scenario } from '@/engine/scenario';
+import { maskRupees } from '@/lib/formatINR';
 import { haptics } from '@/motion/haptics';
 import { useReduceMotion } from '@/motion/prefs';
 import { ringName } from '@/plan/selectors';
 import { usePlanInput } from '@/plan/usePlan';
-import { useScenarioStore } from '@/state/stores';
+import { useScenarioStore, useSettingsStore } from '@/state/stores';
 import { signature, spring } from '@/theme/motion';
 import { colors, radius } from '@/theme/tokens';
 
@@ -40,6 +41,7 @@ export default function Scenarios() {
   const scenarios = useScenarioStore((s) => s.scenarios);
   const remove = useScenarioStore((s) => s.remove);
   const reduce = useReduceMotion();
+  const hidden = useSettingsStore((s) => s.hideAmounts);
   const [picked, setPicked] = useState<string[]>([]);
   const [comparing, setComparing] = useState(false);
   const results = useMemo(() => (input ? new Map(scenarios.map((s) => [s.id, compareScenario(input, s.changes)])) : new Map()), [input, scenarios]);
@@ -71,12 +73,12 @@ export default function Scenarios() {
               <Body color={colors.text} style={styles.th} numberOfLines={1}>
                 {ringName(o.name)}
               </Body>
-              <Body style={styles.td}>{o.before}</Body>
+              <Body style={styles.td}>{maskRupees(o.before, hidden)}</Body>
               {chosen.map((s) => {
                 const r = results.get(s.id)!.outcomes.find((x: { goalId: string }) => x.goalId === o.goalId);
                 return (
                   <Label key={s.id} style={styles.td} color={r?.worse ? colors.stretch : colors.text}>
-                    {r?.after ?? '—'}
+                    {r?.after ? maskRupees(r.after, hidden) : '—'}
                   </Label>
                 );
               })}
@@ -104,7 +106,7 @@ export default function Scenarios() {
       <ScrollView style={styles.list} contentContainerStyle={styles.listIn}>
         {scenarios.map((s) => (
           <View key={s.id}>
-            <Card s={s} picked={picked.includes(s.id)} onPress={() => toggle(s.id)} line2={describeChanges(input, s.changes)} line3={scenarioResult(input, s.changes, results.get(s.id)!.outcomes)} />
+            <Card s={s} picked={picked.includes(s.id)} onPress={() => toggle(s.id)} line2={maskRupees(describeChanges(input, s.changes), hidden)} line3={maskRupees(scenarioResult(input, s.changes, results.get(s.id)!.outcomes), hidden)} />
             {picked.includes(s.id) ? <GhostButton label="Delete" onPress={() => { setPicked((p) => p.filter((x) => x !== s.id)); remove(s.id); }} /> : null}
           </View>
         ))}

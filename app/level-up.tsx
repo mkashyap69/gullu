@@ -13,6 +13,7 @@ import { GhostButton, PrimaryButton } from '@/components/Buttons';
 import { Rise } from '@/components/Rise';
 import { Screen } from '@/components/Screen';
 import { Big, Body, Caption } from '@/components/Text';
+import { ShareSheet } from '@/share/ShareSheet';
 import { LabTop } from '@/dev/LabTop';
 import { LEVELS } from '@/engine/habits';
 import { Gullu, type GulluHandle } from '@/gullu/Gullu';
@@ -20,7 +21,6 @@ import type { Expression, Skin } from '@/gullu/geometry';
 import { haptics } from '@/motion/haptics';
 import { useReduceMotion } from '@/motion/prefs';
 import { Particles } from '@/motion-kit/Particles';
-import { shareCard } from '@/share/shareCard';
 import { duration, easing, gulluMotion, signature } from '@/theme/motion';
 import { colors } from '@/theme/tokens';
 
@@ -41,6 +41,7 @@ export default function LevelUp() {
   const { width, height } = useWindowDimensions();
   const gullu = useRef<GulluHandle>(null);
   const [run, setRun] = useState(1);
+  const [share, setShare] = useState(false);
   const [skin, setSkin] = useState<Skin>(before);
   const [expr, setExpr] = useState<Expression>('happy');
   const [rain, setRain] = useState(0);
@@ -82,12 +83,13 @@ export default function LevelUp() {
 
   const scrim = useAnimatedStyle(() => ({ opacity: dim.value }));
   return (
+    <View style={styles.shareWrap}>
     <Screen
       background="ember"
       footer={
         <>
           <PrimaryButton label="See Gullu's collection" onPress={() => router.replace('/collection')} />
-          <GhostButton label="Share it, amounts hidden" onPress={() => shareCard({ kind: 'levelUp', title: `Level ${level.n}: ${level.name}.`, line: LEVEL_COPY[level.n] })} />
+          <GhostButton label="Share it, amounts hidden" onPress={() => setShare(true)} />
         </>
       }
     >
@@ -111,10 +113,13 @@ export default function LevelUp() {
         <Particles trigger={rain} kinds={['coin', 'petal', 'petal']} count={signature.particleBudget} mode="rain" width={width} height={height} />
       </View>
     </Screen>
+    <ShareSheet card={{ kind: 'levelUp', title: `Level ${level.n}: ${level.name}.`, line: LEVEL_COPY[level.n] }} open={share} onClose={() => setShare(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  shareWrap: { flex: 1 },
   scrim: { backgroundColor: colors.scrim },
   hero: { alignItems: 'center', marginTop: 20, marginBottom: 16 },
 });

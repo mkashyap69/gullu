@@ -55,13 +55,17 @@ export type CheckMove = {
   done: boolean;
   parts: { lineId: string; amount: number }[];
 };
+export type { ChallengeData } from '../engine/challenges';
+import type { ChallengeData } from '../engine/challenges';
+
 export type HabitEvent =
   | { kind: 'level'; data: { level: number }; at: number }
   | { kind: 'skin'; data: { skin: string; label: string }; at: number }
-  | { kind: 'wear'; data: { skin: string }; at: number }
+  | { kind: 'wear'; data: { skin: string; label?: string }; at: number }
   | { kind: 'shield'; data: { month: number; used: boolean }; at: number }
-  | { kind: 'challenge'; data: { id: string; name: string; target: number; progress: number; done: boolean }; at: number }
-  | { kind: 'minute'; data: { card: number; correct: boolean }; at: number }
+  | { kind: 'challenge'; data: ChallengeData; at: number }
+  /** A money minute answer; `ts` is wall-clock ms (cards unlock weekly). */
+  | { kind: 'minute'; data: { card: number; correct: boolean; ts?: number }; at: number }
   /** A one-time moment that has been shown (market fall per high, milestone, goal day). */
   | { kind: 'moment'; data: { key: string }; at: number };
 

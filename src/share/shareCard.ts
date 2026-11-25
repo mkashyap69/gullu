@@ -90,6 +90,13 @@ export async function renderCard(card: Card, showAmounts = false): Promise<Uint8
     c.drawText(l, 80, y, soft, body);
     y += 66;
   }
+  // The disclaimer stays on every shared card (CLAUDE.md).
+  const small = Skia.Font(medium, 30);
+  let dy = H - 210;
+  for (const l of wrap('Projections use the returns I set. They are not guarantees or investment advice.', small, W - 160)) {
+    c.drawText(l, 80, dy, soft, small);
+    dy += 40;
+  }
   c.drawText('Money Plan · made on my phone', 80, H - 90, soft, Skia.Font(medium, 36));
   surface.flush();
   return surface.makeImageSnapshot().encodeToBytes();

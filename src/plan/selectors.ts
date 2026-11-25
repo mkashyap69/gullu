@@ -1,9 +1,11 @@
 // Selectors shared by the screens: streak, level, payday due, display names.
 import { useMemo } from 'react';
 
+import { challengeStatus, latestChallenges, type ChallengeContext } from '../engine/challenges';
+import { streakState } from '../engine/habits';
 import { shownKeys } from '../engine/moments';
-import { useHabitsStore, usePaydayStore, useProfileStore } from '../state/stores';
-import { useToday } from './usePlan';
+import { useHabitsStore, useHoldingsStore, usePaydayStore, useProfileStore } from '../state/stores';
+import { usePlanInput, useToday } from './usePlan';
 
 export function useLevel(): number {
   return useHabitsStore((s) => s.events.reduce((m, e) => (e.kind === 'level' ? Math.max(m, e.data.level) : m), 0));
@@ -55,3 +57,33 @@ export function usePaydayDue(): number | null {
 const SHORT: Record<string, string> = { "Child's education": 'Education', 'Japan trip': 'Japan trip' };
 /** Ring labels on Home (Known design fix 1: "Education", capitalised). */
 export const ringName = (name: string) => SHORT[name] ?? name;
+
+/** The full streak state (shields included) up to this month. */
+export function useStreakState() {
+  const paydays = usePaydayStore((s) => s.paydays);
+  const events = useHabitsStore((s) => s.events);
+  const today = useToday();
+  return useMemo(() => {
+    const placed = paydays.filter((p) => p.placedAt != null).map((p) => p.month);
+    const used = events.flatMap((e) => (e.kind === 'shield' && e.data.used ? [e.data.month] : []));
+    return { s: streakState(placed, used, today), placed: new Set(placed), today };
+  }, [paydays, events, today]);
+}
+
+/** Challenges with their live status (latest event per challenge). */
+export function useChallenges() {
+  const events = useHabitsStore((s) => s.events);
+  const paydays = usePaydayStore((s) => s.paydays);
+  const snapshots = useHoldingsStore((s) => s.snapshots);
+  const input = usePlanInput();
+  return useMemo(() => {
+    if (!input) return [];
+    const ctx: ChallengeContext = {
+      input,
+      paydays: paydays.map((p) => ({ month: p.month, kind: p.kind, placed: p.placedAt != null })),
+      valueMonths: [...new Set(snapshots.filter((s) => s.holdingId == null).map((s) => s.date))],
+      minuteMonths: events.flatMap((e) => (e.kind === 'minute' ? [e.at] : [])),
+    };
+    return latestChallenges(events).map((c) => ({ c, status: challengeStatus(c, ctx) }));
+  }, [events, paydays, snapshots, input]);
+}

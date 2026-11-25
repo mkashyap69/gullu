@@ -21,6 +21,7 @@ export const ICONS = {
   plus: 'M12 5v14M5 12h14',
   income: 'M12 21V11M8 15l4-4 4 4M5 10V6a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4',
   play: 'M8 5.5v13l10.5-6.5z',
+  shield: 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z',
 } as const;
 export type IconName = keyof typeof ICONS;
 

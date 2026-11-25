@@ -2,6 +2,7 @@
  * 8.4 Learn (night). Gullu's one-card explainers: tap a card and it flips (rotateY) to its meaning.
  * Reduced motion: the card cross-fades instead of flipping.
  */
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {

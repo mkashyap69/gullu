@@ -15,6 +15,9 @@ import { PressScale } from '@/components/Pressable';
 import { Screen } from '@/components/Screen';
 import { GlassCard } from '@/components/Surfaces';
 import { Body, H1, Label } from '@/components/Text';
+import { ShareSheet } from '@/share/ShareSheet';
+import { maskRupees } from '@/lib/formatINR';
+import { useChallenges } from '@/plan/selectors';
 import { LabTop } from '@/dev/LabTop';
 import { useHabitSkin } from '@/dev/useHabitSkin';
 import { labelYM } from '@/engine/dates';
@@ -25,8 +28,7 @@ import { useReduceMotion } from '@/motion/prefs';
 import { Particles } from '@/motion-kit/Particles';
 import { useLevel } from '@/plan/selectors';
 import { usePlanInput } from '@/plan/usePlan';
-import { shareCard } from '@/share/shareCard';
-import { useHabitsStore, usePaydayStore } from '@/state/stores';
+import { useHabitsStore, usePaydayStore, useSettingsStore } from '@/state/stores';
 import { duration, easing, spring, stagger } from '@/theme/motion';
 import { colors, radius } from '@/theme/tokens';
 
@@ -89,6 +91,17 @@ export default function Receipt() {
   const paydays = usePaydayStore((s) => s.paydays);
   const events = useHabitsStore((s) => s.events);
   const [burst, setBurst] = useState(0);
+  const [share, setShare] = useState(false);
+  const hidden = useSettingsStore((st) => st.hideAmounts);
+  const challenges = useChallenges();
+  const addHabit = useHabitsStore((st) => st.add);
+  // Challenges this payday finished: a quiet line here, recorded once (no prizes).
+  const finished = challenges.filter((x) => x.status.done && !x.c.done);
+  const [doneNames] = useState(() => finished.map((x) => x.c.name));
+  useEffect(() => {
+    for (const x of finished) addHabit({ kind: 'challenge', data: { ...x.c, done: true, progress: x.status.progress }, at: x.c.start?.month ?? 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished.length]);
   const unlocked = (levels ?? '').split(',').filter(Boolean).map(Number);
   useEffect(() => {
     const t = setTimeout(() => setBurst(1), duration.slow);
@@ -116,12 +129,13 @@ export default function Receipt() {
   };
 
   return (
+    <View style={styles.shareWrap}>
     <Screen
       background="ember"
       footer={
         <>
           <PrimaryButton testID="receipt-home" label="Back home" onPress={home} />
-          <GhostButton label="Share card, amounts hidden" onPress={() => shareCard({ kind: 'receipt', title: `${monthName(month)} placed.`, line: `Streak: ${state.s.streak} months.` })} />
+          <GhostButton label="Share card, amounts hidden" onPress={() => setShare(true)} />
         </>
       }
     >
@@ -139,6 +153,7 @@ export default function Receipt() {
           <Body center>
             Streak: {state.s.streak} {state.s.streak === 1 ? 'month' : 'months'}.{lastShield != null ? ` Your shield covered ${labelYM(lastShield)}.` : ''}
             {festival ? ` Gullu earned a ${festival} look.` : ''}
+            {doneNames.map((n) => ` Challenge kept: ${n}. ✓`).join('')}
           </Body>
         </SlotLine>
         <SlotLine index={2}>
@@ -170,7 +185,7 @@ export default function Receipt() {
                 <View style={styles.flex}>
                   <Body color={colors.text}>
                     <Label>Level {next.n} is one step away. </Label>
-                    {unlockLine(check.blocker)}
+                    {maskRupees(unlockLine(check.blocker), hidden)}
                   </Body>
                 </View>
                 <Icon name="chevron" size={18} color={colors.textCaption} />
@@ -181,10 +196,13 @@ export default function Receipt() {
         ) : null}
       </View>
     </Screen>
+    <ShareSheet card={{ kind: 'receipt', title: `${monthName(month)} placed.`, line: `Streak: ${state.s.streak} months.` }} open={share} onClose={() => setShare(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  shareWrap: { flex: 1 },
   hero: { alignItems: 'center' },
   slot: { height: 3, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.25)', marginHorizontal: 40, marginTop: 4 },
   lines: { gap: 14, marginTop: 6 },

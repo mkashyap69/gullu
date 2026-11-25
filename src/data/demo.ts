@@ -179,8 +179,10 @@ function manishHabits(): HabitEvent[] {
     { kind: 'skin', data: { skin: 'holi', label: 'Holi 2028' }, at: ym(2028, 3) },
     { kind: 'wear', data: { skin: 'secure' }, at: ym(2027, 12) },
     { kind: 'shield', data: { month: ym(2027, 9), used: true }, at: ym(2027, 9) },
-    { kind: 'challenge', data: { id: 'noSkipQuarter', name: 'No skipped payday this quarter', target: 3, progress: 2, done: false }, at: ym(2028, 1) },
-    { kind: 'challenge', data: { id: 'maxPpf', name: 'Max PPF before 31 March', target: 150000, progress: 12500, done: false }, at: ym(2028, 4) },
+    { kind: 'challenge', data: { id: 'noSkipQuarter', name: 'No skipped payday this quarter', target: 3, progress: 2, done: false, start: { month: ym(2028, 2) } }, at: ym(2028, 2) },
+    { kind: 'challenge', data: { id: 'maxPpf', name: 'Max PPF before 31 March', target: 150000, progress: 0, done: false, start: { month: ym(2028, 4) } }, at: ym(2028, 4) },
+    // Four money minute cards answered, the last over a week ago, so card 5 is ready (10.6).
+    ...[1, 2, 3, 4].map((card) => ({ kind: 'minute' as const, data: { card, correct: card !== 2, ts: Date.now() - (5 - card) * 8 * 86400000 }, at: ym(2028, 1) + Math.floor(card / 2) })),
   ];
 }
 

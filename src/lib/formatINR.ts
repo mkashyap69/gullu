@@ -55,3 +55,8 @@ export function formatINR(value: number, opts: FormatINROptions = {}): string {
   } else body = groupIndian(abs);
   return `${sign}₹${body}`;
 }
+
+/** Hide amounts for engine-built sentences ("Education needs ₹3,500 more"): every ₹ figure masked. */
+export function maskRupees(text: string, hidden: boolean): string {
+  return hidden ? text.replace(/₹\s?[\d,]+(\.\d+)?(\s?(L|Cr))?/g, HIDDEN_AMOUNT) : text;
+}

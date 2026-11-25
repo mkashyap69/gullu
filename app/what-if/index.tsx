@@ -21,7 +21,7 @@ import { TickCircle } from '@/components/TickCircle';
 import { goalResultFast, planGoals, safetyNet } from '@/engine/plan';
 import { applicableChanges, compareScenario, fixChanges, scenarioHeadline, scenarioName, type GoalOutcome, type ScenarioChanges } from '@/engine/scenario';
 import { GulluStill } from '@/gullu/Gullu';
-import { formatINR } from '@/lib/formatINR';
+import { formatINR, maskRupees } from '@/lib/formatINR';
 import { goalColor } from '@/lib/goalColors';
 import { haptics } from '@/motion/haptics';
 import { useReduceMotion } from '@/motion/prefs';
@@ -57,6 +57,7 @@ function SlideValue({ text, color }: { text: string; color: string }) {
 
 function Rows({ outcomes, rewind }: { outcomes: GoalOutcome[]; rewind: number }) {
   const input = usePlanInput();
+  const hidden = useSettingsStore((s) => s.hideAmounts);
   const reduce = useReduceMotion();
   const [w, setW] = useState(0);
   const sweep = useSharedValue(-1);
@@ -76,8 +77,8 @@ function Rows({ outcomes, rewind }: { outcomes: GoalOutcome[]; rewind: number })
             <Body color={colors.text} style={styles.name} numberOfLines={1}>
               {ringName(o.name)}
             </Body>
-            <Body style={styles.before}>{o.before}</Body>
-            <SlideValue text={o.after} color={o.worse ? colors.stretch : colors.text} />
+            <Body style={styles.before}>{maskRupees(o.before, hidden)}</Body>
+            <SlideValue text={maskRupees(o.after, hidden)} color={o.worse ? colors.stretch : colors.text} />
           </View>
         );
       })}

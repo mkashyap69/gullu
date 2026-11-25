@@ -256,3 +256,32 @@ Worked phase by phase, each with engine tests where there is logic, a browser ru
 - 7.1: "Good afternoon / Good evening", the over-4% line ("Over 4% draws savings down faster; the ages above already show it.").
 - 7.2: Holdings row ("What's in each bucket, and its value").
 - 7.3: "Tap once you've moved it.", "Done for {Month}. See you next month."
+
+## Phase 9 · Habits (10.1–10.6) — built
+
+- [x] `src/engine/challenges.ts` + tests: the seven challenges from 06-HABITS, with progress **read from real data** (placed paydays, value updates, money minute answers, loans, PPF paid this year), never typed in. At most 2 active. "No new loan" ends neutrally if a loan is added; "Learn 4 cards" ends neutrally when its month passes.
+- [x] 10.1 Levels: ladder draws bottom-up, checks pop in sequence, current level glows, next level's ring fills to its progress with the one blocker ("Education needs ₹3,500 more", masked with Hide amounts). Links to streak and looks. Home chip and the You row open it.
+- [x] 10.3 Collection: level looks (locked as silhouettes "Level 4–6"), festival looks earned, and the next festival locked. Picking a look makes Gullu jump in the header and wears it everywhere; a locked tile shakes and says how it unlocks.
+- [x] 10.4 Streak and challenges: month cells fill left to right, the shield cell glints, challenge bars fill; tap a challenge to stop it ("Stopping is fine…").
+- [x] 10.5 Pick a challenge: options lift, Raise-my-SIP asks for the appraisal month, Start stamps and returns. Running ones are marked.
+- [x] 10.6 Money minute: 24 bundled cards, one a week (wall-clock week); right answer turns green with a drawn check and Gullu hops; a wrong pick shakes softly, then the right answer is shown kindly. Linked from Learn. Card 5 uses the user's own top-priority goal ("your Home money as 2031 gets closer").
+- [x] Share sheet for receipt, milestone and level up: amounts hidden by default with a "Show amounts" toggle; the card now carries the projection disclaimer.
+- [x] Receipt: a quiet "Challenge kept: …" line when a payday finishes one (recorded once).
+- [x] **Hide amounts** now also masks engine-built sentences (level blockers, challenge labels, What if rows, scenario cards) via `maskRupees`.
+- [x] Browser run: no errors. Typecheck, 67 tests, lint, network check pass.
+
+### Decisions and notes (Phase 9)
+- **"This quarter"** for the no-skip challenge means the three months starting with the month it was picked (the demo's started in Feb, so April makes it 3 of 3). Calendar quarters would have shown 3 of 3 already.
+- **Max PPF** reads PPF paid this financial year, so the demo shows ₹0 of ₹1.5 L until April's payday is placed (then ₹12,500, as designed).
+- **Shield line:** under the shield rule Manish holds a shield again (6 placed months since September), so 10.4 says "You have a shield ready." rather than the design's "Next shield in October".
+- **Money minute weeks** use the phone's clock (a card needs a real week), unlike plan months.
+- Collection: the shared-element "jump out of the tile into the header" is a header jump on the newly worn look; the tile-to-header flight needs native shared transitions (device check in Phase 11).
+
+### Drafted copy (Phase 9)
+- 10.1: "Your first level / comes with your first payday".
+- 10.3: festival hint "Place a payday in Diwali month".
+- 10.4: "You have a shield ready.", "Starts with your next payday", "Done ✓", "Two at a time. Finish or stop one to pick another.", stop sheet ("Stopping is fine. You can pick it again any time.", "Stop this challenge", "Done. Nicely kept."), challenge labels ("Waiting for your bonus", "Bonus placed", "In N months", "From ₹X to ₹Y a month", "Raised", "A loan was added", "N of 4 cards").
+- 10.5: "Already running", "Which month is your appraisal?", "Started" stamp.
+- 10.6: 23 of the 24 cards (all but card 5), "The answer is: …", "More on “X” in Learn", "Back home".
+- Share sheet: "Share this card", "Show amounts", "Off: every rupee figure is hidden on the card", "Not now"; card disclaimer "Projections use the returns I set. They are not guarantees or investment advice."
+- Receipt: "Challenge kept: {name}. ✓"

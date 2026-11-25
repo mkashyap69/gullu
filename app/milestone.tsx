@@ -14,6 +14,7 @@ import { useCountUp } from '@/components/Count';
 import { Rise } from '@/components/Rise';
 import { Screen } from '@/components/Screen';
 import { Body, H1 } from '@/components/Text';
+import { ShareSheet } from '@/share/ShareSheet';
 import { LabTop } from '@/dev/LabTop';
 import { useHabitSkin } from '@/dev/useHabitSkin';
 import type { MilestoneKey } from '@/engine/moments';
@@ -54,6 +55,7 @@ export default function Milestone() {
   const { width, height } = useWindowDimensions();
   const gullu = useRef<GulluHandle>(null);
   const [run, setRun] = useState(1);
+  const [share, setShare] = useState(false);
   const [rain, setRain] = useState(0);
   const n = useCountUp(c.n ?? 0, run, reduce ? 0 : duration.slow, duration.draw);
 
@@ -71,12 +73,13 @@ export default function Milestone() {
   }, [run, reduce]);
 
   return (
+    <View style={styles.shareWrap}>
     <Screen
       background="ember"
       footer={
         <>
           <PrimaryButton label="Back home" onPress={() => router.back()} />
-          <GhostButton label="Share it, amounts hidden" />
+          <GhostButton label="Share it, amounts hidden" onPress={() => setShare(true)} />
         </>
       }
     >
@@ -99,10 +102,13 @@ export default function Milestone() {
         <Particles trigger={rain} kinds={['coin', 'petal']} count={40} mode="rain" width={width} height={height} />
       </View>
     </Screen>
+    <ShareSheet card={{ kind: 'milestone', title: c.title(c.n ? n : 0), line: c.body }} open={share} onClose={() => setShare(false)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  shareWrap: { flex: 1 },
   hero: { alignItems: 'center', marginTop: 8, marginBottom: 20 },
   cells: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 24 },
   cell: { width: 24, height: 26, borderRadius: 7, backgroundColor: colors.white },
