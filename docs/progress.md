@@ -187,3 +187,26 @@ Worked phase by phase, each with engine tests where there is logic, a browser ru
 - 4.5: "Gullu earned a Diwali 2027 look.", "Level N unlocked. {Name}: tap to see Gullu's new look.", unlock lines for blockers other than a goal.
 - 4.6: bonus and same-amount lines, "How much came in?".
 - 4.7: commitment sheet ("Each year", "Paid since April", "The rest is spread evenly over the months to 31 March."), add sheet, the closing note.
+
+## Phase 6 · Wealth (5.1–5.6) + What if (6.1–6.3) — built
+
+- [x] `src/engine/wealth.ts` + tests: net worth (₹87.4 L own, ₹3.1 L owe, ₹84.3 L), mix check against the goals' combined target (each goal's horizon-capped mix weighted by its money) and months of new money to fix drift without selling, single-stock nudge above 10% (index funds and stock groups never flagged), EMIs left, prepay-or-invest, planned money by class month by month, holding split that pushes the other shares.
+- [x] `src/engine/scenario.ts` + tests: No income N months (contributions pause; spending comes from the safety net, then Retirement money), Replay 2008/2020, Retire at N, Fix off-track goals, Prepay a loan. Before/after per goal on the fast single-line path; headline; what can be applied; card lines for 6.3. **Design case reproduced:** 6 months without income → "Most goals slip a little. None break.", Home Dec 2031 → Mar 2032.
+- [x] Data: migration 4 (`isGroup` on holdings, e.g. "4 US stocks"), scenarios saved; remove holding/loan.
+- [x] Screens: 5.1 Net worth (count-up, sparkline, Hide amounts), 5.2 Mix (bars grow, drift note), 5.3 Holdings (by class, stale value badge after 60 days, add/edit sheet), 5.4 Loans (prepay vs invest: solid "for sure" bar vs fuzzy "likely" band; add/edit/paid off; "Try it in What if"), 5.5 Timeline (stacked area in Skia, play ≈4s, scrub snaps to months with a tick), "See your year in money" recap, 5.6 Holding split (donut, shares push each other, the rest counts towards Retirement), 6.1 What if (chips, sliders, strike-through before, slide-in after, rewind shimmer), 6.2 Apply sheet (collapses into a check, then Home), 6.3 Scenarios (pick up to 3 with a lift, compare side by side).
+- [x] Browser run with the Manish demo: no errors.
+
+### Decisions and notes (Phase 6)
+- **Slip vs break (6.1):** the design shows Home slipping past its date while "None break". Goals whose date can move (home, trips, car, custom) show when they'd be reached; fixed-date goals (education, wedding) show how short they'd fall. A goal "breaks" only when a fixed-date goal that was on track falls short, or a chosen retirement age can't be met.
+- Our numbers for the design's case: Education ₹6 L → ₹7 L short (design ₹9 L), Retirement at 58 → 58 (design 56 → 57). Retire at 55 needs ₹9,500 more a month (design ₹9,000). Same shape, persona data differs.
+- **Timeline** runs from next month for 5 years; the demo's "today" is Apr 2028, so its axis is May 2028–Apr 2033, not the design's Dec 2026–Nov 2031. New motion token `signature.timelinePlay` (4000 ms).
+- **Year in money** never auto-advances (no timers): tap to go on.
+- **Apply** only changes lasting settings (monthly amounts, retirement age). No-income and replay scenarios can be saved but not applied.
+- "Fix off-track goals" and "Prepay {loan}" chips appear only when there's an off-track goal or the user came from Loans.
+
+### Drafted copy (Phase 6)
+- 5.4: "No loans." + body, "Edit this loan", "+ Add a loan", "It's paid off", loan sheet labels, the above-the-line note ("…so the plan prepays it first. Your call.").
+- 5.5 recap: "Your year in money.", "Tap to go on.", "You placed N paydays.", "went into your goals.", "That's a N-month streak.", "Your planned money / was / and is now", "New money and market moves together. Markets go both ways.", "Same plan, one more year."
+- 6.1: other headlines ("One goal would need help.", "A goal slips a little. None break.", "Your goals move closer.", "Nothing moves. Your plan takes it."), the no-income note past the safety net, the replay note, "Stop working at", "Prepay from savings", "These monthly amounts put every goal on track."
+- 6.2: "Nothing here to apply." + body, "Applied".
+- 6.3: card lines ("No income for N months", "N years earlier", "Markets like 2008, from now", "+₹X a month", "Home slips N months", "Needs ₹X more a month", "All goals still reached"), "Name this scenario", "Pick 2 or 3", "Side by side", "Back to scenarios", empty state.

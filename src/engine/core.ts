@@ -84,6 +84,8 @@ export type SimSpec = {
    * applied from month 0 for as many years as given.
    */
   replay?: number[][];
+  /** No money goes in for the first `pause` months (What if: months without income). */
+  pause?: number;
 };
 
 /** Puts `c` into the balances, filling the gap to target weights first, then by weight. Never sells. */
@@ -105,6 +107,7 @@ export function allocate(bal: number[], c: number, w: number[], scratch?: number
 
 export function contributionAt(spec: SimSpec, m: number, monthly: number): number {
   'worklet';
+  if (spec.pause && m < spec.pause) return 0;
   return monthly * Math.pow(1 + spec.stepUp, Math.floor(m / 12));
 }
 
@@ -139,7 +142,7 @@ export function simulateDeterministic(spec: SimSpec, monthlyOverride?: number, w
   for (let m = 0; m < H; m++) {
     const w = targetWeights(spec.mix, spec.globalShare, Math.max(0, (spec.months - m) / 12));
     allocate(bal, contributionAt(spec, m, monthly), w);
-    if (spec.fixed[m]) bal[spec.fixedClass] += spec.fixed[m];
+    if (spec.fixed[m] && !(spec.pause && m < spec.pause)) bal[spec.fixedClass] += spec.fixed[m];
     const year = Math.floor(m / 12);
     const rp = spec.replay && year < spec.replay.length ? spec.replay[year] : null;
     let tot = 0;
@@ -302,7 +305,7 @@ export function simulateMonteCarlo(spec: SimSpec, paths: number, seed: number, c
     let cross = -1;
     for (let m = 0; m < H; m++) {
       allocate(bal, contrib[m], weightsByMonth[m], gaps);
-      if (fixed[m]) bal[fc] += fixed[m];
+      if (fixed[m] && !(spec.pause && m < spec.pause)) bal[fc] += fixed[m];
       const rg = replayGrowth[m];
       let tot = 0;
       if (rg) {

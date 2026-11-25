@@ -16,6 +16,7 @@ import type {
 } from '../engine/types';
 import { ALL_CLASSES } from '../engine/types';
 import { effectiveRisk } from '../engine/plan';
+import type { Scenario } from '../engine/scenario';
 import type { SqlDb, SqlValue } from './sql';
 
 export type Settings = {
@@ -70,6 +71,7 @@ export type AppData = {
   settings: Settings;
   paydays: Payday[];
   moves?: CheckMove[];
+  scenarios?: Scenario[];
   habits: HabitEvent[];
   snapshots: ValueSnapshot[];
   /** Preferred holding per goal and class (4.3). */
@@ -119,9 +121,9 @@ export async function deleteGoal(db: SqlDb, id: string): Promise<void> {
 
 export async function saveHolding(db: SqlDb, h: Holding, sortOrder = 0): Promise<void> {
   await db.runAsync(
-    `INSERT OR REPLACE INTO holding (id, name, type, assetClass, isStock, planned, value, valueAt, autoMonthly, sortOrder, createdAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [h.id, h.name, h.type, h.assetClass, b(h.isStock), b(h.planned), h.value, h.valueAt, h.autoMonthly ?? null, sortOrder, h.createdAt],
+    `INSERT OR REPLACE INTO holding (id, name, type, assetClass, isStock, planned, value, valueAt, autoMonthly, sortOrder, createdAt, isGroup)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [h.id, h.name, h.type, h.assetClass, b(h.isStock), b(h.planned), h.value, h.valueAt, h.autoMonthly ?? null, sortOrder, h.createdAt, b(!!h.group)],
   );
 }
 
@@ -158,6 +160,23 @@ export async function saveMoves(db: SqlDb, month: number, moves: CheckMove[]): P
       JSON.stringify(m.parts),
     ]);
   }
+}
+
+export async function deleteHolding(db: SqlDb, id: string): Promise<void> {
+  await db.runAsync('DELETE FROM holding WHERE id = ?', [id]);
+  await db.runAsync('DELETE FROM holdingGoal WHERE holdingId = ?', [id]);
+}
+
+export async function deleteLoan(db: SqlDb, id: string): Promise<void> {
+  await db.runAsync('DELETE FROM loan WHERE id = ?', [id]);
+}
+
+export async function saveScenario(db: SqlDb, s: Scenario): Promise<void> {
+  await db.runAsync('INSERT OR REPLACE INTO scenario (id, name, changes_json, createdAt) VALUES (?, ?, ?, ?)', [s.id, s.name, JSON.stringify(s.changes), s.createdAt]);
+}
+
+export async function deleteScenario(db: SqlDb, id: string): Promise<void> {
+  await db.runAsync('DELETE FROM scenario WHERE id = ?', [id]);
 }
 
 export async function addHabit(db: SqlDb, e: HabitEvent): Promise<void> {
@@ -201,6 +220,7 @@ export async function replaceAll(db: SqlDb, data: AppData): Promise<void> {
     for (const p of data.paydays) await savePayday(db, p);
     for (const month of new Set((data.moves ?? []).map((m) => m.month))) await saveMoves(db, month, (data.moves ?? []).filter((m) => m.month === month));
     for (const e of data.habits) await addHabit(db, e);
+    for (const sc of data.scenarios ?? []) await saveScenario(db, sc);
     for (const s of data.snapshots) await addSnapshot(db, s);
     await saveSettings(db, data.settings);
     if (data.today != null) await saveSettingValues(db, { 'plan.today': data.today });
@@ -283,6 +303,7 @@ export async function loadAll(db: SqlDb): Promise<AppData | null> {
     value: num(r.value),
     valueAt: num(r.valueAt),
     ...(r.autoMonthly != null ? { autoMonthly: num(r.autoMonthly) } : {}),
+    ...(num(r.isGroup ?? 0) === 1 ? { group: true } : {}),
     createdAt: num(r.createdAt),
   }));
   const holdingGoals = (await db.getAllAsync<Row>('SELECT * FROM holdingGoal', [])).map((r) => ({ holdingId: str(r.holdingId), goalId: str(r.goalId), pct: num(r.pct) }));
@@ -313,6 +334,7 @@ export async function loadAll(db: SqlDb): Promise<AppData | null> {
     done: r.doneAt != null,
     parts: r.parts_json ? JSON.parse(str(r.parts_json)) : [],
   }));
+  const scenarios: Scenario[] = (await db.getAllAsync<Row>('SELECT * FROM scenario ORDER BY createdAt', [])).map((r) => ({ id: str(r.id), name: str(r.name), changes: JSON.parse(str(r.changes_json)), createdAt: num(r.createdAt) }));
   const habits: HabitEvent[] = (await db.getAllAsync<Row>('SELECT * FROM habit ORDER BY id', [])).map(
     (r) => ({ kind: str(r.kind), data: JSON.parse(str(r.data_json)), at: num(r.at) }) as HabitEvent,
   );
@@ -330,7 +352,7 @@ export async function loadAll(db: SqlDb): Promise<AppData | null> {
   const pinned = kv.get('plan.today');
   const prefsRaw = kv.get('payday.prefs');
   const prefs = typeof prefsRaw === 'string' ? (JSON.parse(prefsRaw) as Record<string, string>) : {};
-  return { input: { profile, assumptions, goals, holdings, holdingGoals, flowRules, loans }, settings, paydays, moves, prefs, habits, snapshots, ...(typeof pinned === 'number' ? { today: pinned } : {}) };
+  return { input: { profile, assumptions, goals, holdings, holdingGoals, flowRules, loans }, settings, paydays, moves, prefs, scenarios, habits, snapshots, ...(typeof pinned === 'number' ? { today: pinned } : {}) };
 }
 
 /** Everything as plain JSON for export (Privacy screen). */

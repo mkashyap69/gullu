@@ -198,11 +198,20 @@ export function retirementDate(goal: Goal, input: PlanInput, retireAge?: number)
   return input.profile.ageAt + (age - input.profile.age) * 12;
 }
 
+/** Adds (or takes, if negative) rupees across a goal's classes in proportion to what it holds. */
+function withDelta(start: number[], delta: number): number[] {
+  if (!delta) return start;
+  const tot = start.reduce((a, b) => a + b, 0);
+  if (tot <= 0) return delta > 0 ? [delta, 0, 0, 0, 0] : start;
+  const f = Math.max(0, (tot + delta) / tot);
+  return start.map((v) => v * f);
+}
+
 /** The simulation spec for one goal. `override` lets What if and "could stop at" vary inputs. */
 export function goalSpec(
   input: PlanInput,
   goal: Goal,
-  override: { monthly?: number; date?: number; targetToday?: number; replay?: number[][] } = {},
+  override: { monthly?: number; date?: number; targetToday?: number; replay?: number[][]; pause?: number; startDelta?: number } = {},
 ): SimSpec {
   const risk = effectiveRisk(input.profile);
   const date = override.date ?? (goal.isRetirement ? retirementDate(goal, input) : goal.date);
@@ -216,7 +225,7 @@ export function goalSpec(
     override.targetToday ??
     (goal.isRetirement ? retirementCorpus(goal, input, goal.retirement?.retireAge ?? 60) : goal.targetToday);
   return {
-    start: (goalBalances(input).get(goal.id) ?? emptyClasses()).slice(),
+    start: withDelta((goalBalances(input).get(goal.id) ?? emptyClasses()).slice(), override.startDelta ?? 0),
     months,
     extraMonths: extra,
     monthly: override.monthly ?? goal.monthly,
@@ -230,6 +239,7 @@ export function goalSpec(
     targetToday,
     infl: goal.inflationPct / 100,
     replay: override.replay,
+    pause: override.pause,
   };
 }
 

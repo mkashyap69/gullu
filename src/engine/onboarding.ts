@@ -8,7 +8,7 @@
  * - Income and expenses are asked on 1.2.
  * Drafted content (risk questions, templates) is listed in docs/progress.md for owner review.
  */
-import { CLASS_INDEX, GLOBAL_SHARE_OF_EQUITY, N_CLASSES, PROFILE_MIX, monthlyRate, requiredMonthlyExact, roundUp500, targetWeights } from './core';
+import { PROFILE_MIX, requiredMonthlyExact, roundUp500 } from './core';
 import { goalSpec, planGoals, retirementDate } from './plan';
 import { suggestSplit, toHoldingGoals, type SplitSuggestion } from './suggestSplit';
 import {
@@ -18,7 +18,6 @@ import {
   type FlowRule,
   type Goal,
   type Holding,
-  type HoldingGoal,
   type Loan,
   type PlanInput,
   type Priority,

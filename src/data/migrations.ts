@@ -47,6 +47,10 @@ export const MIGRATIONS: string[] = [
   ALTER TABLE move ADD COLUMN assetClass TEXT;
   ALTER TABLE move ADD COLUMN parts_json TEXT;
   `,
+  // 4 · holdings recorded as a group of stocks
+  `
+  ALTER TABLE holding ADD COLUMN isGroup INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export async function migrate(db: SqlDb): Promise<number> {

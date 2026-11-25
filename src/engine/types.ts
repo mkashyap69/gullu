@@ -94,6 +94,8 @@ export type Holding = {
   assetClass: AssetClass;
   /** A single stock (counts for the concentration nudge). Index and diversified funds are false. */
   isStock: boolean;
+  /** Several holdings recorded together ("8 other stocks"): never flagged as one company. */
+  group?: boolean;
   /** Gets new money in the plan. */
   planned: boolean;
   value: number;

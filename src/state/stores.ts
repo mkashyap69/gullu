@@ -8,6 +8,7 @@ import { create } from 'zustand';
 import * as repo from '../data/repo';
 import type { AppData, CheckMove, HabitEvent, Payday, Settings, ValueSnapshot } from '../data/repo';
 import type { HoldingPrefs } from '../engine/payday';
+import type { Scenario } from '../engine/scenario';
 import { DEFAULT_SETTINGS } from '../data/repo';
 import type { Assumptions, FlowRule, Goal, Holding, HoldingGoal, Loan, Profile } from '../engine/types';
 import { getDb } from './dbHolder';
@@ -79,6 +80,8 @@ type HoldingsState = {
   setSplit: (holdingId: string, split: HoldingGoal[]) => Promise<void>;
   upsertLoan: (l: Loan) => Promise<void>;
   recordValue: (s: ValueSnapshot) => Promise<void>;
+  removeHolding: (id: string) => Promise<void>;
+  removeLoan: (id: string) => Promise<void>;
 };
 export const useHoldingsStore = create<HoldingsState>()((set, get) => ({
   holdings: [],
@@ -99,6 +102,14 @@ export const useHoldingsStore = create<HoldingsState>()((set, get) => ({
     await repo.saveLoan(getDb(), l);
     const ls = get().loans;
     set({ loans: ls.some((x) => x.id === l.id) ? ls.map((x) => (x.id === l.id ? l : x)) : [...ls, l] });
+  },
+  removeHolding: async (id) => {
+    await repo.deleteHolding(getDb(), id);
+    set({ holdings: get().holdings.filter((h) => h.id !== id), holdingGoals: get().holdingGoals.filter((x) => x.holdingId !== id) });
+  },
+  removeLoan: async (id) => {
+    await repo.deleteLoan(getDb(), id);
+    set({ loans: get().loans.filter((l) => l.id !== id) });
   },
   recordValue: async (s) => {
     await repo.addSnapshot(getDb(), s);
@@ -143,6 +154,23 @@ export const usePaydayStore = create<PaydayState>()((set, get) => ({
   },
 }));
 
+type ScenarioState = {
+  scenarios: Scenario[];
+  save: (s: Scenario) => Promise<void>;
+  remove: (id: string) => Promise<void>;
+};
+export const useScenarioStore = create<ScenarioState>()((set, get) => ({
+  scenarios: [],
+  save: async (s) => {
+    await repo.saveScenario(getDb(), s);
+    set({ scenarios: [...get().scenarios.filter((x) => x.id !== s.id), s] });
+  },
+  remove: async (id) => {
+    await repo.deleteScenario(getDb(), id);
+    set({ scenarios: get().scenarios.filter((x) => x.id !== id) });
+  },
+}));
+
 type HabitsState = {
   events: HabitEvent[];
   add: (e: HabitEvent) => Promise<void>;
@@ -180,6 +208,7 @@ export function applyAppData(data: AppData | null): void {
   });
   usePaydayStore.setState({ paydays: data?.paydays ?? [], moves: data?.moves ?? [], prefs: data?.prefs ?? {} });
   useHabitsStore.setState({ events: data?.habits ?? [] });
+  useScenarioStore.setState({ scenarios: data?.scenarios ?? [] });
   useSettingsStore.setState({ ...(data?.settings ?? DEFAULT_SETTINGS), hydrated: true });
 }
 
