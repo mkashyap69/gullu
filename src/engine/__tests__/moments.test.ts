@@ -27,6 +27,11 @@ test('Manish\'s 14% fall is inside a Balanced plan\'s bad year (about 15%)', () 
   expect(0.14).toBeLessThan(expectedBadYearDrop(0.6));
 });
 
+test('a later confirmed total in the same month replaces the earlier one', () => {
+  const snaps = [...manishSnaps(), { date: ym(2028, 4), holdingId: null, value: 8600000 }];
+  expect(marketFall(snaps, 'balanced', new Set())).toBeNull();
+});
+
 test('totals carry forward per-holding values when no total was confirmed', () => {
   const t = totalsByDate([
     { date: 1, holdingId: 'a', value: 100 },

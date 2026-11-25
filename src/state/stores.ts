@@ -6,7 +6,8 @@
 import { create } from 'zustand';
 
 import * as repo from '../data/repo';
-import type { AppData, HabitEvent, Payday, Settings, ValueSnapshot } from '../data/repo';
+import type { AppData, CheckMove, HabitEvent, Payday, Settings, ValueSnapshot } from '../data/repo';
+import type { HoldingPrefs } from '../engine/payday';
 import { DEFAULT_SETTINGS } from '../data/repo';
 import type { Assumptions, FlowRule, Goal, Holding, HoldingGoal, Loan, Profile } from '../engine/types';
 import { getDb } from './dbHolder';
@@ -107,13 +108,38 @@ export const useHoldingsStore = create<HoldingsState>()((set, get) => ({
 
 type PaydayState = {
   paydays: Payday[];
+  /** Check-in moves by month. */
+  moves: CheckMove[];
+  /** Preferred holding per goal and class (4.3). */
+  prefs: HoldingPrefs;
   savePayday: (p: Payday) => Promise<void>;
+  setMoves: (month: number, moves: CheckMove[]) => Promise<void>;
+  updateMove: (month: number, key: string, patch: Partial<CheckMove>) => Promise<void>;
+  setPref: (key: string, holdingId: string | null) => Promise<void>;
 };
 export const usePaydayStore = create<PaydayState>()((set, get) => ({
   paydays: [],
+  moves: [],
+  prefs: {},
   savePayday: async (p) => {
     await repo.savePayday(getDb(), p);
     set({ paydays: [...get().paydays.filter((x) => x.month !== p.month), p].sort((a, b) => a.month - b.month) });
+  },
+  setMoves: async (month, moves) => {
+    await repo.saveMoves(getDb(), month, moves);
+    set({ moves: [...get().moves.filter((m) => m.month !== month), ...moves] });
+  },
+  updateMove: async (month, key, patch) => {
+    const moves = get().moves.map((m) => (m.month === month && m.key === key ? { ...m, ...patch } : m));
+    set({ moves });
+    await repo.saveMoves(getDb(), month, moves.filter((m) => m.month === month));
+  },
+  setPref: async (key, holdingId) => {
+    const prefs = { ...get().prefs };
+    if (holdingId) prefs[key] = holdingId;
+    else delete prefs[key];
+    set({ prefs });
+    await repo.saveSettingValues(getDb(), { 'payday.prefs': JSON.stringify(prefs) });
   },
 }));
 
@@ -152,7 +178,7 @@ export function applyAppData(data: AppData | null): void {
     loans: data?.input.loans ?? [],
     snapshots: data?.snapshots ?? [],
   });
-  usePaydayStore.setState({ paydays: data?.paydays ?? [] });
+  usePaydayStore.setState({ paydays: data?.paydays ?? [], moves: data?.moves ?? [], prefs: data?.prefs ?? {} });
   useHabitsStore.setState({ events: data?.habits ?? [] });
   useSettingsStore.setState({ ...(data?.settings ?? DEFAULT_SETTINGS), hydrated: true });
 }

@@ -114,7 +114,12 @@ export function MarketFallScreen({ replayable = false }: { replayable?: boolean 
           <View style={styles.chart} key={run}>
             <RangeBand data={band} width={chartW} height={CHART_H} mode="calm" scrub={false} trigger={run} bandColor="rgba(201,195,255,0.22)" />
           </View>
-          <Caption>Based on the values you confirmed at check-in. Nothing is fetched from the internet. Update values</Caption>
+          <Caption>
+            Based on the values you confirmed at check-in. Nothing is fetched from the internet.{' '}
+            <Caption color={colors.text} style={styles.link} onPress={replayable ? undefined : () => router.push({ pathname: '/payday/values', params: { standalone: '1' } })}>
+              Update values
+            </Caption>
+          </Caption>
         </GlassCard>
         <Caption style={styles.sip}>Your SIP gets more units while prices are low. Stopping it now is the usual mistake.</Caption>
       </Rise>
@@ -130,4 +135,5 @@ const styles = StyleSheet.create({
   amounts: { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
   chart: { marginVertical: 6 },
   sip: { marginTop: 12 },
+  link: { textDecorationLine: 'underline' },
 });

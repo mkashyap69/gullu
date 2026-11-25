@@ -25,7 +25,8 @@ export function totalsByDate(snapshots: Snapshot[]): { date: YM; total: number }
   for (const d of dates) {
     const at = snapshots.filter((s) => s.date === d);
     for (const s of at) if (s.holdingId) latest.set(s.holdingId, s.value);
-    const confirmed = at.find((s) => s.holdingId == null);
+    // The latest confirmed total of the month wins (a value check later in the month replaces it).
+    const confirmed = [...at].reverse().find((s) => s.holdingId == null);
     out.push({ date: d, total: confirmed ? confirmed.value : [...latest.values()].reduce((a, b) => a + b, 0) });
   }
   return out;

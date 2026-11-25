@@ -146,7 +146,7 @@ export function commitmentFlows(input: PlanInput, months: number): Map<string, {
     if (rule.type !== 'commitment' || !rule.enabled) continue;
     const h = input.holdings.find((x) => x.id === rule.holdingId);
     if (!h) continue;
-    let paid = rule.paidThisYear;
+    let paid = paidThisFy(rule, input.today);
     const flows = new Array(months).fill(0);
     for (let m = 0; m < months; m++) {
       const cm = (input.today + m) % 12;
@@ -169,9 +169,17 @@ export function commitmentsThisMonth(input: PlanInput): { rule: Extract<FlowRule
   const mlf = cm <= 2 ? 3 - cm : 15 - cm;
   for (const rule of input.flowRules) {
     if (rule.type !== 'commitment' || !rule.enabled) continue;
-    out.push({ rule, amount: Math.max(0, rule.yearlyCap - rule.paidThisYear) / mlf });
+    out.push({ rule, amount: Math.max(0, rule.yearlyCap - paidThisFy(rule, input.today)) / mlf });
   }
   return out;
+}
+
+/** Financial year (April–March) a month belongs to, by its starting year. */
+export const fyOf = (m: number) => (m % 12 >= 3 ? Math.floor(m / 12) : Math.floor(m / 12) - 1);
+
+/** What has gone into a commitment this financial year (zero once a new year starts). */
+export function paidThisFy(rule: { paidThisYear: number; paidFy?: number }, today: number): number {
+  return rule.paidFy == null || rule.paidFy === fyOf(today) ? rule.paidThisYear : 0;
 }
 
 /** Retirement corpus needed at `retireAge`, in today's rupees (annuity-due at the real return). */

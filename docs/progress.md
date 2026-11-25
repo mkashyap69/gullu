@@ -153,3 +153,37 @@ Plan: engine for the one-time moments and glide steps (tests first), then the fi
 - Edit goal: cap notes for 3–5, 5–7 and 7+ years; retirement "Spending a month, in today's rupees" / "I'll plan for it to last until 85."; safety net "Months of spending" / "That's ₹X in cash or liquid funds, ready any time."; "Remove this goal" / "Remove it for good".
 - Glide path body for other steps ("From {month} the goal is under 5/7 years away, so new money moves its mix down to N% equity. Nothing is sold to do it.") and when already under 3 years.
 - Goal day for non-travel goals: "Move it to cash, ready to use".
+
+---
+
+# Phases 5–11 (owner: "build phase 5–11 in one go", 25 Nov 2026)
+
+Worked phase by phase, each with engine tests where there is logic, a browser run-through, and its own commit.
+
+## Phase 5 · Payday loop (4.1–4.7) + value update — built
+
+- [x] `src/engine/payday.ts` + tests: the month's lines in flow-rule order (safety-net top-up, costly debt, commitments spread to 31 March, each goal's own amount). **Short month (4.6):** the safety net and must-have goals keep their full amount first, then flow-rule order; a commitment that gets less "catches up later" (₹35,000 gives Home 18,000 · Education 12,500 · PPF 4,500 · Retirement and Trip next month, as designed). **Bonus:** extra goes to the goal furthest behind, must first, else Retirement. Moves into holdings follow each goal's mix (one holding per class per goal; funds before single stocks; the user's preferred holding wins), add up to the exact payday, PPF first.
+- [x] `src/engine/habits.ts` + tests: streak with shields (one every 6 placed months in a row, max 1 held, covers one missed month; the current month never breaks a streak), festival looks (Diwali and Holi months 2026–2031, bundled), the six levels with progress and the one thing blocking the next ("11 of 12 paydays · Education needs ₹3,500 more").
+- [x] Data: migration 3 (move class and parts); check-in moves saved per month, so a check-in can be finished later; preferred holdings; PPF paid this financial year with its year (`paidFy`), resetting each April.
+- [x] `src/state/payday.ts` + a store test of the whole loop: `startPayday` → ticks → `placePayday` (holdings and loans move by what actually went in, PPF records its payment, payday placed, shields used, festival looks, levels unlocked in order, once each, never down, newest look worn) → `confirmValues` (classes scaled to the confirmed values, a snapshot per holding plus the total).
+- [x] Screens: Payday tab (the payday moment when money has landed; between paydays: next date, the split, flow rules, "It landed early"; variable income: "Money in?"), 4.3 Why this amount (shared element from the bubble, bars in sequence, shared-holding split ring, pick a different holding of the same kind), 4.4 Check-in (saved ticks, tap an amount to correct it), 4.4b Quick value check, 4.5 Receipt (real streak, shield, festival, next-level card or "Level N unlocked" → 10.2), 4.6 Short month, 4.7 Flow rules (drag to reorder, toggles, PPF "paid since April" and yearly amount, add ELSS/SSY/RD/NPS). 4.1 in-app: the payday bar slides in with a coin drop. Notifications are Phase 10.
+- [x] Browser run of the loop with the Manish demo: no errors.
+
+### Decisions and notes (Phase 5)
+- **Known design fix 2** applied: "Show me the moves".
+- **Costly debt** isn't sized anywhere in the docs. Draft rule: while a loan is above the threshold, half of what's left after the safety net goes to prepaying it (`COSTLY_DEBT_SHARE`). Manish's car loan (9.2%) is below 12%, so it doesn't apply to him.
+- **Why this amount numbers** differ from 4.3: the glide path sends Home's new money to debt first because its equity is over its 40% cap (₹14,400 short-term debt, ₹3,300 S&P 500, ₹300 liquid), where the design shows a target-mix split.
+- **Shield timing:** 10.4 says "Next shield in October" for Manish; under 06-HABITS's rule (every 6 placed months in a row) his next shield arrives in March. The rule wins.
+- **Done** on check-in places what was ticked; unticked moves wait. Done is disabled until at least one is ticked.
+- The market-fall "Update values" link opens the value check on its own.
+- The demo persona's ₹74.8 L confirmed total doesn't match its own holdings (₹86 L), so confirming values in the demo clears the market fall. That's the persona data, not the engine.
+- 8.3's copy says "Usage stats never include amounts", but the app has no usage stats at all (no analytics, by rule). Kept verbatim for now; worth rewording.
+
+### Drafted copy (Phase 5)
+- Payday line for other cases ("Your safety net comes first…", costly loan, no loans); between paydays ("Next payday: 1st May.", "Here's where it will go when it lands.", "Money in?", "Log money in", "It landed early", "See April's receipt", "Where your money goes first / Flow rules").
+- 4.3 for non-must goals, commitments, safety net and debt; "Which of yours should take it?", "Chosen", "Let me choose again each month", "Add another holding of this kind in Wealth to have a choice."
+- 4.4: "Done places what you ticked. The rest can wait for next month.", amount sheet "What went in" / "Planned ₹X."
+- 4.4b: "I've filled in where your money should be by now. Change any that look off, from your apps.", "Skip this month", "Values stay on this phone. Nothing is fetched from the internet."
+- 4.5: "Gullu earned a Diwali 2027 look.", "Level N unlocked. {Name}: tap to see Gullu's new look.", unlock lines for blockers other than a goal.
+- 4.6: bonus and same-amount lines, "How much came in?".
+- 4.7: commitment sheet ("Each year", "Paid since April", "The rest is spread evenly over the months to 31 March."), add sheet, the closing note.

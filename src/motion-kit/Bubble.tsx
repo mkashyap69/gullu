@@ -98,7 +98,7 @@ export function Bubble({
 
   return (
     <Animated.View style={[styles.wrap, flyStyle]}>
-      <PressScale onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}`} style={styles.center}>
+      <PressScale onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}`} style={styles.center} testID={`bubble-${label}`}>
         <View style={{ height: 64, justifyContent: 'center' }}>
           <Animated.View
             sharedTransitionTag={sharedTag}

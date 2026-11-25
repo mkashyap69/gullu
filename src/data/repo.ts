@@ -41,6 +41,18 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 export type Payday = { month: number; amount: number; kind: 'same' | 'less' | 'bonus'; placedAt: number | null };
+
+/** A check-in move (4.4): planned amount, what the user actually put in, ticked or not. */
+export type CheckMove = {
+  month: number;
+  key: string;
+  holdingId: string;
+  assetClass: string;
+  planned: number;
+  actual: number;
+  done: boolean;
+  parts: { lineId: string; amount: number }[];
+};
 export type HabitEvent =
   | { kind: 'level'; data: { level: number }; at: number }
   | { kind: 'skin'; data: { skin: string; label: string }; at: number }
@@ -57,8 +69,11 @@ export type AppData = {
   input: Omit<PlanInput, 'today'>;
   settings: Settings;
   paydays: Payday[];
+  moves?: CheckMove[];
   habits: HabitEvent[];
   snapshots: ValueSnapshot[];
+  /** Preferred holding per goal and class (4.3). */
+  prefs?: Record<string, string>;
   /** Pinned "today" (demo personas only); real plans use the current month. */
   today?: number;
 };
@@ -128,6 +143,23 @@ export async function savePayday(db: SqlDb, p: Payday): Promise<void> {
   await db.runAsync('INSERT OR REPLACE INTO payday (month, amount, kind, placedAt) VALUES (?, ?, ?, ?)', [p.month, p.amount, p.kind, p.placedAt]);
 }
 
+export async function saveMoves(db: SqlDb, month: number, moves: CheckMove[]): Promise<void> {
+  await db.runAsync('DELETE FROM move WHERE paydayId = ?', [month]);
+  for (const m of moves) {
+    await db.runAsync('INSERT INTO move (paydayId, holdingId, goalId, planned, actual, doneAt, moveKey, assetClass, parts_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+      month,
+      m.holdingId || null,
+      null,
+      m.planned,
+      m.actual,
+      m.done ? month : null,
+      m.key,
+      m.assetClass,
+      JSON.stringify(m.parts),
+    ]);
+  }
+}
+
 export async function addHabit(db: SqlDb, e: HabitEvent): Promise<void> {
   await db.runAsync('INSERT INTO habit (kind, data_json, at) VALUES (?, ?, ?)', [e.kind, JSON.stringify(e.data), e.at]);
 }
@@ -167,6 +199,7 @@ export async function replaceAll(db: SqlDb, data: AppData): Promise<void> {
     for (const r of i.flowRules) await saveFlowRule(db, r);
     for (const l of i.loans) await saveLoan(db, l);
     for (const p of data.paydays) await savePayday(db, p);
+    for (const month of new Set((data.moves ?? []).map((m) => m.month))) await saveMoves(db, month, (data.moves ?? []).filter((m) => m.month === month));
     for (const e of data.habits) await addHabit(db, e);
     for (const s of data.snapshots) await addSnapshot(db, s);
     await saveSettings(db, data.settings);
@@ -270,6 +303,16 @@ export async function loadAll(db: SqlDb): Promise<AppData | null> {
     kind: str(r.kind) as Payday['kind'],
     placedAt: r.placedAt == null ? null : num(r.placedAt),
   }));
+  const moves: CheckMove[] = (await db.getAllAsync<Row>('SELECT * FROM move ORDER BY id', [])).map((r) => ({
+    month: num(r.paydayId),
+    key: str(r.moveKey ?? r.holdingId ?? ''),
+    holdingId: r.holdingId == null ? '' : str(r.holdingId),
+    assetClass: str(r.assetClass ?? ''),
+    planned: num(r.planned),
+    actual: r.actual == null ? num(r.planned) : num(r.actual),
+    done: r.doneAt != null,
+    parts: r.parts_json ? JSON.parse(str(r.parts_json)) : [],
+  }));
   const habits: HabitEvent[] = (await db.getAllAsync<Row>('SELECT * FROM habit ORDER BY id', [])).map(
     (r) => ({ kind: str(r.kind), data: JSON.parse(str(r.data_json)), at: num(r.at) }) as HabitEvent,
   );
@@ -285,7 +328,9 @@ export async function loadAll(db: SqlDb): Promise<AppData | null> {
     if (typeof v === 'boolean') settings[k] = v;
   }
   const pinned = kv.get('plan.today');
-  return { input: { profile, assumptions, goals, holdings, holdingGoals, flowRules, loans }, settings, paydays, habits, snapshots, ...(typeof pinned === 'number' ? { today: pinned } : {}) };
+  const prefsRaw = kv.get('payday.prefs');
+  const prefs = typeof prefsRaw === 'string' ? (JSON.parse(prefsRaw) as Record<string, string>) : {};
+  return { input: { profile, assumptions, goals, holdings, holdingGoals, flowRules, loans }, settings, paydays, moves, prefs, habits, snapshots, ...(typeof pinned === 'number' ? { today: pinned } : {}) };
 }
 
 /** Everything as plain JSON for export (Privacy screen). */

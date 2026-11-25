@@ -115,11 +115,13 @@ export type FlowRule =
       order: number;
       enabled: boolean;
       type: 'commitment';
-      instrument: 'PPF' | 'NPS' | 'ELSS' | 'SSY';
+      instrument: 'PPF' | 'NPS' | 'ELSS' | 'SSY' | 'RD';
       holdingId: string;
       yearlyCap: number;
       /** Already paid this financial year (April–March). */
       paidThisYear: number;
+      /** Financial year (April start) `paidThisYear` belongs to; a new year starts at zero. */
+      paidFy?: number;
     }
   | { id: string; order: number; enabled: boolean; type: 'goals' };
 

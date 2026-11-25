@@ -41,6 +41,12 @@ export const MIGRATIONS: string[] = [
   ALTER TABLE profile ADD COLUMN monthlyIncome REAL;
   ALTER TABLE profile ADD COLUMN incomeVaries INTEGER NOT NULL DEFAULT 0;
   `,
+  // 3 · check-in moves keep their class and which goals/commitments they serve
+  `
+  ALTER TABLE move ADD COLUMN moveKey TEXT;
+  ALTER TABLE move ADD COLUMN assetClass TEXT;
+  ALTER TABLE move ADD COLUMN parts_json TEXT;
+  `,
 ];
 
 export async function migrate(db: SqlDb): Promise<number> {

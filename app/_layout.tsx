@@ -66,6 +66,10 @@ export default function RootLayout() {
               <Stack.Screen name="goal/day/[id]" options={{ animation: 'fade' }} />
               <Stack.Screen name="market-fall" options={{ animation: 'fade' }} />
               <Stack.Screen name="milestone" options={{ animation: 'fade' }} />
+              <Stack.Screen name="level-up" options={{ animation: 'fade' }} />
+              <Stack.Screen name="payday/why/[id]" options={{ animation: 'fade' }} />
+              <Stack.Screen name="payday/values" options={{ animation: 'fade' }} />
+              <Stack.Screen name="payday/receipt" options={{ animation: 'fade' }} />
               <Stack.Screen name="dev/moments/goal-detail" options={{ animation: 'fade' }} />
               <Stack.Screen name="dev/moments/receipt" options={{ animation: 'fade' }} />
             </Stack>

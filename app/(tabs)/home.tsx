@@ -7,13 +7,15 @@
  */
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   cancelAnimation,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
+  SlideInDown,
+  withDelay,
   withRepeat,
   withSpring,
   withTiming,
@@ -34,7 +36,7 @@ import { Gullu, GulluStill, type GulluHandle } from '@/gullu/Gullu';
 import { goalColor } from '@/lib/goalColors';
 import { formatINR } from '@/lib/formatINR';
 import { haptics } from '@/motion/haptics';
-import { useAmbient } from '@/motion/prefs';
+import { useAmbient, useReduceMotion } from '@/motion/prefs';
 import { GoalRing } from '@/motion-kit/GoalRing';
 import { ringName, useLevel, usePaydayDue, useShown, useStreak } from '@/plan/selectors';
 import { usePlan, usePlanInput, usePlanNonce } from '@/plan/usePlan';
@@ -44,6 +46,24 @@ import { duration, spring } from '@/theme/motion';
 import { colors, layout, radius } from '@/theme/tokens';
 
 const AScrollView = Animated.createAnimatedComponent(ScrollView);
+
+/** 4.1 in-app: a coin drops into the payday bar as it slides in. */
+function CoinDrop() {
+  const reduce = useReduceMotion();
+  const y = useSharedValue(reduce ? 0 : -60);
+  const o = useSharedValue(reduce ? 0 : 1);
+  useEffect(() => {
+    if (reduce) return;
+    y.value = withDelay(duration.base, withTiming(0, { duration: duration.slow, easing: Easing.in(Easing.quad) }));
+    o.value = withDelay(duration.base + duration.slow, withTiming(0, { duration: duration.fast }));
+  }, [reduce, y, o]);
+  const a = useAnimatedStyle(() => ({ opacity: o.value, transform: [{ translateY: y.value }] }));
+  return (
+    <Animated.View style={[styles.coin, a]} pointerEvents="none">
+      <Label color={colors.ink}>₹</Label>
+    </Animated.View>
+  );
+}
 const PULL_MAX = 120;
 
 export default function Home() {
@@ -171,7 +191,8 @@ export default function Home() {
         </View>
       </AScrollView>
       {due ? (
-        <View style={styles.barWrap}>
+        <Animated.View style={styles.barWrap} entering={Platform.OS === 'web' ? undefined : SlideInDown.springify().damping(spring.gentle.damping).stiffness(spring.gentle.stiffness)}>
+          <CoinDrop />
           <Animated.View style={[styles.bar, glowStyle]}>
             <View style={styles.barText}>
               <Amount value={due} variant="label" weight="800" />
@@ -181,7 +202,7 @@ export default function Home() {
               <Label color={colors.ink}>Place it</Label>
             </PressScale>
           </Animated.View>
-        </View>
+        </Animated.View>
       ) : null}
     </View>
   );
@@ -195,6 +216,7 @@ const styles = StyleSheet.create({
   gullu: { alignItems: 'center', marginTop: 24 },
   rings: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
   ring: { alignItems: 'center', flex: 1, gap: 4 },
+  coin: { position: 'absolute', left: 44, top: 14, zIndex: 2, width: 28, height: 28, borderRadius: 14, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   barWrap: { paddingHorizontal: layout.screenPadding.horizontal, paddingBottom: 8 },
   bar: {
     flexDirection: 'row',
