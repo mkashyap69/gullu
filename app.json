@@ -59,6 +59,87 @@
         {
           "color": "#F06A24"
         }
+      ],
+      [
+        "expo-widgets",
+        {
+          "groupIdentifier": "group.app.moneyplan",
+          "enableAndroid": true,
+          "widgets": [
+            {
+              "name": "MoneyPlanStatus",
+              "displayName": "Goals",
+              "description": "How many goals are on track, at a glance.",
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium",
+                "systemLarge",
+                "accessoryCircular",
+                "accessoryRectangular",
+                "accessoryInline"
+              ],
+              "android": {
+                "minWidth": 110,
+                "minHeight": 110,
+                "targetCellWidth": 2,
+                "targetCellHeight": 2,
+                "resizeMode": "both"
+              }
+            },
+            {
+              "name": "MoneyPlanPayday",
+              "displayName": "Payday",
+              "description": "Your payday amount, ready to place.",
+              "supportedFamilies": [
+                "systemSmall",
+                "accessoryRectangular",
+                "accessoryInline"
+              ],
+              "android": {
+                "minWidth": 110,
+                "minHeight": 110,
+                "targetCellWidth": 2,
+                "targetCellHeight": 2,
+                "resizeMode": "none"
+              }
+            },
+            {
+              "name": "MoneyPlanGoal",
+              "displayName": "One goal",
+              "description": "One goal you pick.",
+              "supportedFamilies": [
+                "systemSmall"
+              ],
+              "android": null,
+              "configuration": {
+                "title": "Pick a goal",
+                "parameters": {
+                  "goal": {
+                    "title": "Goal",
+                    "type": "enum",
+                    "dynamic": true,
+                    "values": [
+                      {
+                        "name": "The goal that needs most",
+                        "value": ""
+                      }
+                    ],
+                    "default": ""
+                  }
+                }
+              }
+            },
+            {
+              "name": "MoneyPlanMoves",
+              "displayName": "This month's moves",
+              "description": "Which moves are done and what's next.",
+              "supportedFamilies": [
+                "systemMedium"
+              ],
+              "android": null
+            }
+          ]
+        }
       ]
     ],
     "experiments": {

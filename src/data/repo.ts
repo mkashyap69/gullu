@@ -30,6 +30,16 @@ export type Settings = {
   fpsOverlay: boolean;
   /** The user reordered goals by hand (3.1); otherwise they're listed soonest first. */
   customGoalOrder: boolean;
+  /** 9.3: each notification kind, lock-screen hiding and quiet hours. */
+  nPayday: boolean;
+  nCheckIn: boolean;
+  nValues: boolean;
+  nMilestones: boolean;
+  nGoalChanges: boolean;
+  nPpf: boolean;
+  nYearly: boolean;
+  nHideLock: boolean;
+  nQuiet: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -40,6 +50,15 @@ export const DEFAULT_SETTINGS: Settings = {
   notifications: true,
   fpsOverlay: false,
   customGoalOrder: false,
+  nPayday: true,
+  nCheckIn: true,
+  nValues: true,
+  nMilestones: true,
+  nGoalChanges: true,
+  nPpf: true,
+  nYearly: true,
+  nHideLock: false,
+  nQuiet: true,
 };
 
 export type Payday = { month: number; amount: number; kind: 'same' | 'less' | 'bonus'; placedAt: number | null };

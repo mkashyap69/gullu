@@ -12,6 +12,7 @@ import { Body } from '@/components/Text';
 import { isMemoryDb, openDb } from '@/data/db';
 import { demoAppData } from '@/data/demo';
 import { FpsOverlay } from '@/dev/FpsOverlay';
+import { NotificationSync } from '@/notifications/Sync';
 import { AppLock } from '@/security/AppLock';
 import { useBackgroundStore } from '@/state/background';
 import { setDb } from '@/state/dbHolder';
@@ -80,6 +81,7 @@ export default function RootLayout() {
           </ThemeProvider>
         ) : null}
         {fontsLoaded && ready ? <AppLock /> : null}
+        {fontsLoaded && ready ? <NotificationSync /> : null}
         {fps ? <FpsOverlay /> : null}
       </SafeAreaProvider>
     </GestureHandlerRootView>

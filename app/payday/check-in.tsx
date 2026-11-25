@@ -4,7 +4,7 @@
  * ring advances (medium haptic). On the last tick Gullu hops and Done pulses. Ticks are saved, so a
  * check-in can be finished later. Done places the payday, then the quick value check.
  */
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -70,6 +70,16 @@ export default function CheckIn() {
   const [draft, setDraft] = useState(0);
   const [busy, setBusy] = useState(false);
   const gullu = useRef<GulluHandle>(null);
+  // "Already done" from the payday notification: tick every move, so Done goes straight on.
+  const allDone = useLocalSearchParams<{ all?: string }>().all === '1';
+  const today = input?.today;
+  useEffect(() => {
+    if (!allDone || today == null) return;
+    const mine = all.filter((m) => m.month === today && !m.done);
+    if (!all.some((m) => m.month === today)) router.replace('/payday');
+    for (const m of mine) updateMove(today, m.key, { done: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDone, today]);
   if (!input) return null;
   const month = input.today;
   const moves = all.filter((m) => m.month === month);

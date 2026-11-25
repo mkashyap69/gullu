@@ -285,3 +285,28 @@ Worked phase by phase, each with engine tests where there is logic, a browser ru
 - 10.6: 23 of the 24 cards (all but card 5), "The answer is: …", "More on “X” in Learn", "Back home".
 - Share sheet: "Share this card", "Show amounts", "Off: every rupee figure is hidden on the card", "Not now"; card disclaimer "Projections use the returns I set. They are not guarantees or investment advice."
 - Receipt: "Challenge kept: {name}. ✓"
+
+## Phase 10 · Notifications and widgets (9.x) — built (device checks pending)
+
+- [x] `src/notifications/plan.ts` + tests: the 8 kinds with 07's copy, next 8 weeks, **at most 2 in any 7 days** (Payday > Check-in > Goal reached > Safety net > Value update > Goal near > PPF > Yearly), quiet hours 10 pm – 8 am move to 8 am, each kind switchable, **hide amounts on lock screen** ("Payday: money to place"; no ₹ anywhere; also on whenever Hide amounts is on).
+- [x] `src/notifications/schedule.ts`: local only (expo-notifications), cancels and reschedules after every data change (debounced, `NotificationSync` in the root layout). Payday category actions: **Show me the moves** (Check-in), **Remind me tomorrow** (one-off next day 9 am), **Already done** (Check-in with every move ticked). Every notification deep-links (`/payday`, `/payday/check-in`, `/payday/values?standalone=1`, `/goal/…`, `/goal/day/…`, `/milestone?kind=safety`, `/payday/rules`, `/onboarding/risk?retake=1`). Goal reached / Safety net full are scheduled only when the app goes to the background before the in-app moment was seen.
+- [x] 9.3 Notification settings: 7 switches + lock-screen hiding + quiet hours; the "At most N a week" count rolls live; a row asks for permission if the phone has it off.
+- [x] Widgets with `expo-widgets` (+ `@expo/ui`, SDK-bundled versions; `enableAndroid`): Status (small "Goals · 3 of 4 · on track", medium goal rows, large summary with "₹55,000 landed · Place it", lock-screen circular "3/4", rectangular, inline), Payday (small + lock-screen rectangular/inline), One goal (iOS, user picks the goal via a dynamic enum), This month's moves (iOS medium). Android gets Status and Payday in Compose. Each opens the screen it shows.
+- [x] `src/widgets/snapshot.ts` + tests: one snapshot of ready-made strings; with Hide amounts on there is no ₹ figure anywhere in it. `publishWidgetSnapshot()` refreshes every widget after any data or settings change.
+- [x] Typecheck, 74 tests, lint, network check pass. Web preview: no errors (notifications and widgets are no-ops there).
+
+### Decisions and notes (Phase 10)
+- **"Show me what to buy"** on 9.2 replaced by **"Show me the moves"** (07's rule).
+- **Expanded notification (9.2)** shows the collapsed body; listing the split inside the notification needs a notification content extension (not built; the tap opens the split).
+- **Goal near** uses 07's bands (5, 3, 1 years); 07's example "Japan trip is 6 months away" isn't one of the bands. Drafted bodies for 5 and 3 years.
+- **Variable income:** 07 says the payday notification fires "when the user logs money in", but the user is in the app at that moment, so it's skipped; they land on the payday flow directly.
+- **No push:** `expo-widgets`' push-token and Live Activity APIs aren't used, and `enablePushNotifications` is off. App Group `group.app.moneyplan`.
+- **Retirees:** notifications run (value update, yearly check, milestones); widgets aren't published for them, since no retiree widget is designed.
+- **Not verifiable here:** widget rendering, notification delivery and actions need a dev build on a device (`npx expo prebuild --clean`, then run). Listed for the owner.
+
+### Drafted copy (Phase 10)
+- Check-in for a future month: "Tick off the moves. Two taps to finish."
+- Goal near (5 and 3 years): "{Goal} is N years away" / "From now, new money for it goes to steadier places first."; 1 year title "{Goal} is a year away".
+- Hidden PPF: "Room left for PPF this year" / "Add it by 31 March to use the full yearly limit."
+- 9.3: "When you log money in", "On the last day, 9 am", "No notifications.", "Your phone has notifications off for Money Plan. Tap to allow them.", quiet hours "Off".
+- Widgets: "when it lands", "Next payday", "Needs a little more", "No moves this month yet", "All done", "Add a goal", "The goal that needs most", widget names and descriptions.
