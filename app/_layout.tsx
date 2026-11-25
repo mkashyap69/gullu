@@ -12,6 +12,7 @@ import { Body } from '@/components/Text';
 import { isMemoryDb, openDb } from '@/data/db';
 import { demoAppData } from '@/data/demo';
 import { FpsOverlay } from '@/dev/FpsOverlay';
+import { AppLock } from '@/security/AppLock';
 import { useBackgroundStore } from '@/state/background';
 import { setDb } from '@/state/dbHolder';
 import { applyAppData, hydrate, useSettingsStore } from '@/state/stores';
@@ -71,11 +72,13 @@ export default function RootLayout() {
               <Stack.Screen name="payday/values" options={{ animation: 'fade' }} />
               <Stack.Screen name="payday/receipt" options={{ animation: 'fade' }} />
               <Stack.Screen name="wealth/year" options={{ animation: 'fade' }} />
+              <Stack.Screen name="you/privacy" options={{ animation: 'fade' }} />
               <Stack.Screen name="dev/moments/goal-detail" options={{ animation: 'fade' }} />
               <Stack.Screen name="dev/moments/receipt" options={{ animation: 'fade' }} />
             </Stack>
           </ThemeProvider>
         ) : null}
+        {fontsLoaded && ready ? <AppLock /> : null}
         {fps ? <FpsOverlay /> : null}
       </SafeAreaProvider>
     </GestureHandlerRootView>

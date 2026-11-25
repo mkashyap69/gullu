@@ -14,6 +14,7 @@ import type {
   Profile,
   RiskProfile,
 } from '../engine/types';
+import { formatYMKey } from '../engine/dates';
 import { ALL_CLASSES } from '../engine/types';
 import { effectiveRisk } from '../engine/plan';
 import type { Scenario } from '../engine/scenario';
@@ -364,6 +365,14 @@ export async function exportJson(db: SqlDb): Promise<string> {
 export async function exportHoldingsCsv(db: SqlDb): Promise<string> {
   const data = await loadAll(db);
   const rows = [['name', 'type', 'assetClass', 'value', 'valueAt'].join(',')];
-  for (const h of data?.input.holdings ?? []) rows.push([JSON.stringify(h.name), h.type, h.assetClass, h.value, h.valueAt].join(','));
+  for (const h of data?.input.holdings ?? []) rows.push([JSON.stringify(h.name), h.type, h.assetClass, h.value, formatYMKey(h.valueAt)].join(','));
+  return rows.join('\n');
+}
+
+/** Goals as CSV for export. */
+export async function exportGoalsCsv(db: SqlDb): Promise<string> {
+  const data = await loadAll(db);
+  const rows = [['name', 'priority', 'targetToday', 'date', 'monthly', 'status'].join(',')];
+  for (const g of data?.input.goals ?? []) rows.push([JSON.stringify(g.name), g.priority, g.targetToday, formatYMKey(g.date), g.monthly, g.status].join(','));
   return rows.join('\n');
 }

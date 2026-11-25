@@ -64,5 +64,6 @@ export const signature = {
   bubbleBobPeriod: 2800, // Payday bubbles: gentle idle bob, each on its own phase
   bubbleBobPx: 3,
   breatheGlow: 1600, // "Keep going" soft breathing glow (market fall)
+  holdConfirm: 2000, // "Delete everything": hold-to-confirm ring
   timelinePlay: 4000, // Timeline: play runs 5 years forward in about 4s
 } as const;

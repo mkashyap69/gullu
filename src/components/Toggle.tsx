@@ -9,7 +9,7 @@ import { colors, layout } from '../theme/tokens';
 import { PressScale } from './Pressable';
 import { Body, Caption } from './Text';
 
-export function Toggle({ value, onChange, label, detail }: { value: boolean; onChange: (v: boolean) => void; label: string; detail?: string }) {
+export function Toggle({ value, onChange, label, detail, disabled, testID }: { value: boolean; onChange: (v: boolean) => void; label: string; detail?: string; disabled?: boolean; testID?: string }) {
   const t = useSharedValue(value ? 1 : 0);
   useEffect(() => {
     t.value = withSpring(value ? 1 : 0, spring.snappy);
@@ -19,8 +19,10 @@ export function Toggle({ value, onChange, label, detail }: { value: boolean; onC
   return (
     <PressScale
       accessibilityRole="switch"
-      accessibilityState={{ checked: value }}
+      accessibilityState={{ checked: value, disabled }}
       accessibilityLabel={label}
+      disabled={disabled}
+      testID={testID}
       onPress={() => {
         haptics.selection();
         onChange(!value);

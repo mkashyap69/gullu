@@ -5,7 +5,7 @@
  * Only Question 3 is from the designs; the other four are drafts for owner review.
  */
 import { Canvas, Circle, Path, Skia } from '@shopify/react-native-skia';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeIn, FadeOut, SlideInRight, SlideOutLeft, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
@@ -14,7 +14,10 @@ import { Amount } from '@/components/Amount';
 import { OptionCard } from '@/components/OptionCard';
 import { Screen } from '@/components/Screen';
 import { Caption, H1 } from '@/components/Text';
-import { RISK_QUESTIONS } from '@/engine/onboarding';
+import { RISK_QUESTIONS, scoreRisk } from '@/engine/onboarding';
+import { currentAge } from '@/engine/plan';
+import { usePlanInput } from '@/plan/usePlan';
+import { useProfileStore } from '@/state/stores';
 import { useReduceMotion } from '@/motion/prefs';
 import { OnboardingTop } from '@/screens/onboarding/OnboardingTop';
 import { isRetired, useOnboarding } from '@/state/onboarding';
@@ -58,6 +61,14 @@ function FallChart({ width }: { width: number }) {
 
 export default function RiskCheck() {
   const s = useOnboarding();
+  // From You (8.1): "Retake the risk check" re-scores the saved profile and comes back.
+  const retake = useLocalSearchParams<{ retake?: string }>().retake === '1';
+  const input = usePlanInput();
+  const setProfile = useProfileStore((p) => p.setProfile);
+  useEffect(() => {
+    if (retake) s.set({ risk: {} });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retake]);
   const { width } = useWindowDimensions();
   const [i, setI] = useState(0);
   const q = RISK_QUESTIONS[i];
@@ -65,11 +76,16 @@ export default function RiskCheck() {
   const web = Platform.OS === 'web';
 
   const choose = (idx: number) => {
-    s.set({ risk: { ...s.risk, [q.key]: idx } });
+    const answers = { ...s.risk, [q.key]: idx };
+    s.set({ risk: answers });
     // Let the chosen card glow for a beat, then move on.
     setTimeout(() => {
       if (i < RISK_QUESTIONS.length - 1) setI(i + 1);
-      else router.push(isRetired(s) ? '/onboarding/have' : '/onboarding/goals');
+      else if (retake && input) {
+        const p = input.profile;
+        const r = scoreRisk({ age: currentAge(p, input.today), dependents: p.dependents, monthlyIncome: p.monthlyIncome ?? 0, emis: input.loans.reduce((a, l) => a + l.emi, 0), answers });
+        setProfile({ ...p, riskCapacity: r.capacity, riskTolerance: r.tolerance, riskOverride: null, riskCheckedAt: input.today }).then(() => router.back());
+      } else router.push(isRetired(s) ? '/onboarding/have' : '/onboarding/goals');
     }, duration.slow);
   };
 

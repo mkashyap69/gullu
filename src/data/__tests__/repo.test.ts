@@ -4,7 +4,7 @@
 import { computePlanFast } from '../../engine/plan';
 import { demoAppData, DEMO_TODAY, manishInput } from '../demo';
 import { MIGRATIONS, migrate } from '../migrations';
-import { exportJson, loadAll, replaceAll } from '../repo';
+import { clearAll, exportGoalsCsv, exportHoldingsCsv, exportJson, loadAll, replaceAll } from '../repo';
 import { applyAppData, hydrate, loadDemo, useGoalsStore, useProfileStore, useSettingsStore } from '../../state/stores';
 import { setDb } from '../../state/dbHolder';
 import { memoryDb } from './nodeSqlite';
@@ -47,4 +47,16 @@ test('stores hydrate, write through, and switch demo personas', async () => {
   await loadDemo(demoAppData('sunita'));
   expect(useProfileStore.getState().profile?.name).toBe('Sunita');
   expect(useSettingsStore.getState().hideAmounts).toBe(false);
+});
+
+test('export: CSV of holdings and goals; delete everything leaves nothing to load', async () => {
+  const db = memoryDb();
+  await migrate(db);
+  await replaceAll(db, demoAppData('manish'));
+  const goals = (await exportGoalsCsv(db)).split('\n');
+  expect(goals[0]).toBe('name,priority,targetToday,date,monthly,status');
+  expect(goals).toContain('"Home",must,3000000,2031-12,18000,active');
+  expect((await exportHoldingsCsv(db)).split('\n')[1]).toMatch(/^".+",\w+,\w+,\d+,\d{4}-\d{2}$/);
+  await clearAll(db);
+  expect(await loadAll(db)).toBeNull();
 });

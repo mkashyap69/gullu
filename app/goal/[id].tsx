@@ -82,6 +82,11 @@ export default function GoalDetail() {
   const chartW = width - layout.screenPadding.horizontal * 2;
   const L = (v: number) => formatINR(Math.round(v / 1e5) * 1e5, { compact: true, hidden });
   const b = result.bands;
+  // 8.2 "Show today's rupees" off: goal-date figures in that year's rupees (goal's own inflation).
+  const today = input.assumptions.showTodayRupees;
+  const f = today ? 1 : Math.pow(1 + goal.inflationPct / 100, years);
+  const atYear = ymYear(goal.isRetirement ? retirementDate(goal, input) : goal.date);
+  const rupees = today ? "In today's rupees." : `In ${atYear} rupees, with prices rising ${goal.inflationPct}% a year.`;
 
   return (
     <Screen
@@ -116,14 +121,14 @@ export default function GoalDetail() {
           <Caption color={WORD_COLOR[result.affordability]}>{WORD[result.affordability]}</Caption>
         </View>
         <H1>
-          Likely {L(b?.likely ?? result.likelyToday)} of {L(result.targetToday)}.
+          Likely {L(f * (b?.likely ?? result.likelyToday))} of {L(f * result.targetToday)}.
         </H1>
         {b ? (
           <Body>
-            In today&apos;s rupees. Almost sure: {L(b.almostSure)}. Possible: {L(b.possible)}.
+            {rupees} Almost sure: {L(f * b.almostSure)}. Possible: {L(f * b.possible)}.
           </Body>
         ) : (
-          <Body>In today&apos;s rupees.</Body>
+          <Body>{rupees}</Body>
         )}
       </Rise>
       <Animated.View sharedTransitionTag={`ring-${id}`} style={[styles.chart, { width: chartW, height: CHART_H }]}>

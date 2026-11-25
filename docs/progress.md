@@ -210,3 +210,28 @@ Worked phase by phase, each with engine tests where there is logic, a browser ru
 - 6.1: other headlines ("One goal would need help.", "A goal slips a little. None break.", "Your goals move closer.", "Nothing moves. Your plan takes it."), the no-income note past the safety net, the replay note, "Stop working at", "Prepay from savings", "These monthly amounts put every goal on track."
 - 6.2: "Nothing here to apply." + body, "Applied".
 - 6.3: card lines ("No income for N months", "N years earlier", "Markets like 2008, from now", "+₹X a month", "Home slips N months", "Needs ₹X more a month", "All goals still reached"), "Name this scenario", "Pick 2 or 3", "Side by side", "Back to scenarios", empty state.
+
+## Phase 7 · You (8.1–8.5) — built
+
+- [x] 8.1 You: name, age, stage, work, dependents; risk profile card with an animated five-segment meter and ghost markers for capacity and answers; rows to Levels, Retake the risk check (re-scores the saved profile from the 1.3 questions and returns), Change risk profile, Assumptions, Privacy, Notifications (9.3, Phase 10), Learn.
+- [x] 8.5 Too aggressive: choosing a profile above the lower of capacity and answers opens the warning sheet first (Gullu concerned, "Stay Balanced" primary). Lower is applied straight away; choosing the suggested one clears the override.
+- [x] 8.2 Assumptions: Cautious / Base / Optimistic presets roll every value together; tap a value to set your own (±0.5, shows "Your own"); Show today's rupees; the disclaimer. `src/engine/assumptions.ts` + tests.
+- [x] 8.3 Privacy: App lock (Face ID / fingerprint / phone PIN via expo-local-authentication; locks at launch and after 60s away; covers the app in the switcher), Hide amounts by default, encryption shown as always on, Export (JSON of everything, or CSV of holdings and goals, through the share sheet; the file is deleted after), Delete everything (2s hold ring; drops the encrypted database and its key, back to Welcome).
+- [x] 8.4 Learn: flip cards (rotateY; cross-fade with reduced motion), 4 shown, "See all 24".
+- [x] Browser run: no errors. Typecheck, 62 tests, lint, network check pass.
+
+### Decisions and notes (Phase 7)
+- **Preset values** for Cautious and Optimistic aren't in the docs. Drafted: Cautious = equity −2, other classes −1, inflation +1; Optimistic = equity +1, others +0.5, inflation −0.5. Base keeps the engine's defaults (cash 5.5%, where the 8.2 PNG shows 6%; Fixture A depends on the engine defaults).
+- **Show today's rupees off** switches Goal detail's headline and range to the goal year's rupees. Other screens keep today's rupees for now (noted for Phase 11).
+- **Motion and haptics** row added to You (reduce animations, haptics) since these settings needed a home; the phone's own reduce-motion setting always wins too.
+- **8.5 when goals aren't all on track:** the design line "your goals are on track with it" would be untrue, so a drafted variant is used.
+- 8.3 still says "Usage stats never include amounts" verbatim; the app has no usage stats (see Phase 5 note).
+- App lock isn't testable in the web preview (no device authentication); the lock never engages there.
+
+### Drafted copy (Phase 7)
+- 8.1: other risk explanations ("Your capacity and your answers both say X.", "You chose X. Your answers say Y and your capacity says Z."), "App lock is off", "Off", "Five questions", "Your first payday starts it", risk sheet ("Change risk profile", "Your answers and capacity suggest X. Lower is always fine.", "· suggested"), "Motion and haptics" sheet.
+- 8.5 variant: "Your answers said X. Y means deeper falls in bad years. A little more each month is the steadier way to close a gap."
+- 8.2: "Your own", value sheet note "A yearly average over many years. Real years will be higher and lower."
+- 8.3: hold hint, export sheet ("The file goes to your phone's share sheet…", "Everything, as JSON", "Holdings and goals, as CSV"), "Set a screen lock first." sheet, lock screen ("Money Plan is locked.", "Your plan stays private until you unlock it.", "Unlock").
+- 8.4: 20 of the 24 explainers (all but SIP, Glide path, PPF, Drawdown).
+- Goal detail with today's rupees off: "In {year} rupees, with prices rising N% a year."
