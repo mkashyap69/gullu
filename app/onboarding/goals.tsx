@@ -1,3 +1,4 @@
+// motion-audit: fade-only (opacity/colour only, or follows the finger; kept with reduced motion)
 /**
  * 1.4 Goals (dusk). Templates pre-ticked for the life stage. Rows enter with a 40ms stagger;
  * ticking draws the check path with a light haptic; unticked rows dim to 50%. Gullu peeks from the

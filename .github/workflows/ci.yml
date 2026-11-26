@@ -13,6 +13,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:network
+      - run: npm run check:motion
+      - run: npm run check:a11y
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test -- --ci

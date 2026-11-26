@@ -6,7 +6,7 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { FadeIn, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 import { GhostButton, PrimaryButton } from '@/components/Buttons';
 import { PressScale } from '@/components/Pressable';
@@ -22,6 +22,7 @@ import { WEEK_MS, MINUTE_CARDS, cardQuestion } from '@/lib/moneyMinute';
 import { ringName } from '@/plan/selectors';
 import { usePlanInput } from '@/plan/usePlan';
 import { haptics } from '@/motion/haptics';
+import { softShake } from '@/motion/shake';
 import { useReduceMotion } from '@/motion/prefs';
 import { useHabitsStore } from '@/state/stores';
 import { duration } from '@/theme/motion';
@@ -31,7 +32,7 @@ function Option({ text, state, onPress, i }: { text: string; state: 'idle' | 'ri
   const reduce = useReduceMotion();
   const x = useSharedValue(0);
   useEffect(() => {
-    if (state === 'wrong' && !reduce) x.value = withSequence(withTiming(-5, { duration: 60 }), withTiming(5, { duration: 90 }), withTiming(-3, { duration: 80 }), withTiming(0, { duration: 70 }));
+    if (state === 'wrong' && !reduce) x.value = softShake();
   }, [state, reduce, x]);
   const a = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   return (

@@ -1,19 +1,21 @@
 /** Toggle: the thumb slides on spring.snappy and the track fills; selection haptic on change. */
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 import { haptics } from '../motion/haptics';
-import { spring } from '../theme/motion';
+import { useReduceMotion } from '../motion/prefs';
+import { duration, spring } from '../theme/motion';
 import { colors, layout } from '../theme/tokens';
 import { PressScale } from './Pressable';
 import { Body, Caption } from './Text';
 
 export function Toggle({ value, onChange, label, detail, disabled, testID }: { value: boolean; onChange: (v: boolean) => void; label: string; detail?: string; disabled?: boolean; testID?: string }) {
+  const reduce = useReduceMotion();
   const t = useSharedValue(value ? 1 : 0);
   useEffect(() => {
-    t.value = withSpring(value ? 1 : 0, spring.snappy);
-  }, [value, t]);
+    t.value = reduce ? withTiming(value ? 1 : 0, { duration: duration.instant }) : withSpring(value ? 1 : 0, spring.snappy);
+  }, [value, t, reduce]);
   const track = useAnimatedStyle(() => ({ backgroundColor: interpolateColor(t.value, [0, 1], [colors.track, colors.comfortable]) }));
   const thumb = useAnimatedStyle(() => ({ transform: [{ translateX: t.value * 20 }] }));
   return (

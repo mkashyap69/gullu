@@ -1,3 +1,4 @@
+// motion-audit: direct manipulation (the movement follows the user's own touch, so it stays with reduced motion)
 /**
  * A value you drag sideways to change (the age wheel on 1.2, the amount dial on 1.6). Digits roll
  * like an odometer; each step gives a selection haptic (or one every `tickEvery` steps). Screen
@@ -105,7 +106,7 @@ export function ScrubValue({
         onAccessibilityAction={(e) => set(Math.min(max, Math.max(min, value + (e.nativeEvent.actionName === 'increment' ? step : -step))))}
       >
         {typeable ? (
-          <Pressable onPress={() => (setText(String(value)), setEditing(true))} testID={testID ? `${testID}-tap` : undefined}>
+          <Pressable onPress={() => (setText(String(value)), setEditing(true))} accessibilityRole="button" accessibilityLabel={`${accessibilityLabel}, tap to type`} testID={testID ? `${testID}-tap` : undefined}>
             <RollingText text={format(value)} variant={variant} weight="800" />
           </Pressable>
         ) : (

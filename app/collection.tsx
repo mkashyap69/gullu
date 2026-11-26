@@ -17,6 +17,7 @@ import { FESTIVALS, LEVELS } from '@/engine/habits';
 import { GulluStill } from '@/gullu/Gullu';
 import type { Skin } from '@/gullu/geometry';
 import { haptics } from '@/motion/haptics';
+import { softShake } from '@/motion/shake';
 import { useReduceMotion } from '@/motion/prefs';
 import { useLevel } from '@/plan/selectors';
 import { usePlanInput } from '@/plan/usePlan';
@@ -33,7 +34,7 @@ function TileView({ t, i, wearing, onPick }: { t: Tile; i: number; wearing: bool
   const shake = () => {
     haptics.selection();
     setTip(true);
-    if (!reduce) x.value = withSequence(withTiming(-4, { duration: 50 }), withTiming(4, { duration: 80 }), withTiming(-2, { duration: 70 }), withTiming(0, { duration: 60 }));
+    if (!reduce) x.value = softShake(4);
     setTimeout(() => setTip(false), duration.celebrate);
   };
   const a = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));

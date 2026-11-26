@@ -25,6 +25,7 @@ import { currentAge, effectiveRisk } from '@/engine/plan';
 import type { Goal, Priority } from '@/engine/types';
 import { formatINR } from '@/lib/formatINR';
 import { haptics } from '@/motion/haptics';
+import { useReduceMotion } from '@/motion/prefs';
 import { usePlanInput } from '@/plan/usePlan';
 import { useGoalsStore, useHoldingsStore } from '@/state/stores';
 import { duration, spring } from '@/theme/motion';
@@ -52,6 +53,7 @@ const band = (years: number) => (years < 3 ? 0 : years < 5 ? 1 : years < 7 ? 2 :
 
 export default function EditGoal() {
   const { id, rollFrom } = useLocalSearchParams<{ id?: string; rollFrom?: string }>();
+  const reduce = useReduceMotion();
   const input = usePlanInput();
   const upsertGoal = useGoalsStore((s) => s.upsertGoal);
   const removeGoal = useGoalsStore((s) => s.removeGoal);
@@ -223,7 +225,7 @@ export default function EditGoal() {
             ]}
           />
           <View style={styles.note}>
-            <Animated.View key={band(years)} entering={ZoomIn.springify().damping(spring.snappy.damping).stiffness(spring.snappy.stiffness)} exiting={FadeOut.duration(duration.fast)}>
+            <Animated.View key={band(years)} entering={reduce ? FadeIn.duration(duration.fast) : ZoomIn.springify().damping(spring.snappy.damping).stiffness(spring.snappy.stiffness)} exiting={FadeOut.duration(duration.fast)}>
               <Caption>{capNote(years, PROFILE_MIX[risk][0], PROFILE_NAME[risk])}</Caption>
             </Animated.View>
           </View>

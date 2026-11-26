@@ -23,6 +23,7 @@ import { CLASS_NAME } from '@/lib/classes';
 import { goalColor } from '@/lib/goalColors';
 import { haptics } from '@/motion/haptics';
 import { usePlanInput } from '@/plan/usePlan';
+import { ComingSoon } from '@/screens/ComingSoon';
 import { HoldingSheet } from '@/screens/wealth/HoldingSheet';
 import { useHoldingsStore } from '@/state/stores';
 
@@ -60,7 +61,8 @@ export default function HoldingSplit() {
   const [picking, setPicking] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
-  if (!input || !holding) return null;
+  if (!input) return null;
+  if (!holding) return <ComingSoon back background="night" title="This holding is gone." body="It may have been removed. Your other holdings are in Wealth." />;
   const explicit = Object.values(shares).reduce((a, b) => a + b, 0);
   const rest = Math.max(0, 100 - explicit);
   const goalsAvail = [...planGoals(input), ...input.goals.filter((g) => g.isSafetyNet)].filter((g) => !g.isRetirement && shares[g.id] == null);

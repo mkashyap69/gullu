@@ -1,3 +1,4 @@
+// motion-audit: direct manipulation (the movement follows the user's own touch, so it stays with reduced motion)
 /** Slider (1.6 yearly raise): drag the thumb; selection haptic on each whole step. */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';

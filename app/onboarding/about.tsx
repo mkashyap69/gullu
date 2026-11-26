@@ -1,3 +1,4 @@
+// motion-audit: fade-only (opacity/colour only, or follows the finger; kept with reduced motion)
 /**
  * 1.2 About you (dusk). Age is a wheel with haptic ticks; pills slide a shared selected background;
  * choosing Retired cross-fades the helper line and changes the step count.

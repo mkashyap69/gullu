@@ -59,7 +59,10 @@
     "test": "jest",
     "check:network": "bash scripts/check-no-network.sh",
     "engine:ref": "node --test reference/engine.test.js",
-    "web:setup": "mkdir -p public && cp node_modules/canvaskit-wasm/bin/full/canvaskit.wasm public/"
+    "web:setup": "mkdir -p public && cp node_modules/canvaskit-wasm/bin/full/canvaskit.wasm public/",
+    "check:motion": "node scripts/motion-audit.mjs",
+    "check:a11y": "node scripts/a11y-audit.mjs",
+    "screens:compare": "node scripts/screenshot-compare.mjs"
   },
   "private": true,
   "jest": {

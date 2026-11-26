@@ -37,7 +37,8 @@ export type WithdrawalPath = {
   refills: { month: number; amount: number }[];
 };
 
-function step(spec: WithdrawalSpec, draw: () => { cash: number; income: number; growth: number }): WithdrawalPath {
+function step(spec: WithdrawalSpec, draw: (g: Float64Array) => void): WithdrawalPath {
+  const gr = new Float64Array(3);
   const b = { ...spec.buckets };
   const H = (spec.maxAge - spec.startAge) * 12;
   const yearly: number[] = [];
@@ -66,18 +67,22 @@ function step(spec: WithdrawalSpec, draw: () => { cash: number; income: number; 
       growthYearStart = b.growth;
     }
     let need = Math.max(0, spend - pension);
-    for (const k of ['cash', 'income', 'growth'] as const) {
-      const t = Math.min(need, b[k]);
-      b[k] -= t;
-      need -= t;
-    }
+    let t = Math.min(need, b.cash);
+    b.cash -= t;
+    need -= t;
+    t = Math.min(need, b.income);
+    b.income -= t;
+    need -= t;
+    t = Math.min(need, b.growth);
+    b.growth -= t;
+    need -= t;
     if (need > 1) {
       return { lastsUntil: spec.startAge + Math.floor(m / 12), yearly, refills };
     }
-    const g = draw();
-    b.cash *= g.cash;
-    b.income *= g.income;
-    b.growth *= g.growth;
+    draw(gr);
+    b.cash *= gr[0];
+    b.income *= gr[1];
+    b.growth *= gr[2];
     if (m % 12 === 11) yearly.push(b.cash + b.income + b.growth);
   }
   return { lastsUntil: spec.maxAge, yearly, refills };
@@ -86,8 +91,12 @@ function step(spec: WithdrawalSpec, draw: () => { cash: number; income: number; 
 const mrate = (pct: number) => Math.pow(1 + pct / 100, 1 / 12);
 
 export function withdrawalLikely(spec: WithdrawalSpec): WithdrawalPath {
-  const g = { cash: mrate(spec.returnPct.cash), income: mrate(spec.returnPct.income), growth: mrate(spec.returnPct.growth) };
-  return step(spec, () => g);
+  const c = mrate(spec.returnPct.cash), i = mrate(spec.returnPct.income), g = mrate(spec.returnPct.growth);
+  return step(spec, (out) => {
+    out[0] = c;
+    out[1] = i;
+    out[2] = g;
+  });
 }
 
 /** Monte Carlo of the withdrawal plan. Returns the age money lasts until at the 10th and 50th percentiles. */
@@ -103,11 +112,11 @@ export function withdrawalRanges(spec: WithdrawalSpec, paths = 1000, seed = 7): 
   const mu = Object.fromEntries(ks.map((k) => [k, Math.log(1 + spec.returnPct[k] / 100) / 12])) as BucketState;
   const sig = Object.fromEntries(ks.map((k) => [k, spec.volatilityPct[k] / 100 / Math.sqrt(12)])) as BucketState;
   for (let p = 0; p < paths; p++) {
-    const r = step(spec, () => ({
-      cash: Math.exp(mu.cash + sig.cash * normal()),
-      income: Math.exp(mu.income + sig.income * normal()),
-      growth: Math.exp(mu.growth + sig.growth * normal()),
-    }));
+    const r = step(spec, (out) => {
+      out[0] = Math.exp(mu.cash + sig.cash * normal());
+      out[1] = Math.exp(mu.income + sig.income * normal());
+      out[2] = Math.exp(mu.growth + sig.growth * normal());
+    });
     ages.push(r.lastsUntil);
   }
   ages.sort((a, b) => a - b);

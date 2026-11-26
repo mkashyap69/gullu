@@ -310,3 +310,17 @@ Worked phase by phase, each with engine tests where there is logic, a browser ru
 - Hidden PPF: "Room left for PPF this year" / "Add it by 31 March to use the full yearly limit."
 - 9.3: "When you log money in", "On the last day, 9 am", "No notifications.", "Your phone has notifications off for Money Plan. Tap to allow them.", quiet hours "Off".
 - Widgets: "when it lands", "Next payday", "Needs a little more", "No moves this month yet", "All done", "Add a goal", "The goal that needs most", widget names and descriptions.
+
+## Phase 11 · Polish — done (device checks listed)
+
+- [x] **Motion QA** (`npm run check:motion`, in CI): only motion.ts tokens (fixed three literal timings: soft shake now `signature.softShake*`, timeline snap `duration.instant`), every animated file has a reduced-motion path (added to Goal detail preview, Edit goal badge, Toggle), no haptics on market fall. Ambient loops pause off-screen, in background, with reduced motion and on low power.
+- [x] **Accessibility** (`npm run check:a11y`, in CI): every pressable has a role, label or readable text (fixed the monthly amount tap target and the type-to-edit amount). Text scales to 1.3× (amounts capped at 1.15× so they don't wrap).
+- [x] **Performance notes**: `docs/performance.md` (measured; retiree Monte Carlo loop allocation-free, same results).
+- [x] **Screenshot comparison**: `npm run screens:compare` captures 46 screens with the demo data at 390×844 beside `design/screens/<id>.png` in `screenshots/index.html` (git-ignored). All 46 render without errors. 9.1, 9.2, 9.4–9.6 are system UI and reference sheets (not app screens).
+- [x] **App icon and splash**: Gullu `happy` on the dusk gradient, generated from the live drawing (`scripts/make-icons.mjs`, dev route `/dev/icon`): iOS/Android icon, adaptive layers (foreground, dusk background, monochrome), splash image on the dusk top colour, favicon. The Expo template's Icon Composer asset is removed.
+- [x] Holding split shows "This holding is gone." for a missing id instead of a blank screen.
+
+### Notes (Phase 11)
+- **Contrast risk:** caption text (60% white) near the bright orange end of the ember/dusk gradients falls below 4.5:1. The colours are from the designs, so not changed; worth an owner look (e.g. 85% white for footer captions).
+- **Splash → Welcome:** the splash shows Gullu centred; Welcome then plays `land`. A pixel-matched hand-off needs a device check.
+- `adjustsFontSizeToFit` (Levels footer links) has no effect in the web preview; fine on native.

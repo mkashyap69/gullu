@@ -1,3 +1,4 @@
+// motion-audit: fade-only (opacity/colour only, or follows the finger; kept with reduced motion)
 /** An answer card (1.3): presses in to 0.97, and the chosen one turns white with a soft glow. */
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';

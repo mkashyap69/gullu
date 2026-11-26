@@ -25,6 +25,7 @@ import { labelYM, ymYear } from '@/engine/dates';
 import { CHOL, MC_PATHS, MC_SEED, effectiveRisk, goalSpec, planGoals, retirementDate } from '@/engine/plan';
 import { GLOBAL_SHARE_OF_EQUITY, PROFILE_MIX, targetWeights } from '@/engine/core';
 import { formatINR } from '@/lib/formatINR';
+import { useReduceMotion } from '@/motion/prefs';
 import { RangeBand, bandFromMc, type BandData } from '@/motion-kit/RangeBand';
 import { runMonteCarlo } from '@/plan/runMonteCarlo';
 import { usePlan, usePlanInput } from '@/plan/usePlan';
@@ -41,6 +42,7 @@ export default function GoalDetail() {
   const { plan, ranges } = usePlan();
   const hidden = useSettingsStore((s) => s.hideAmounts);
   const preview = useSharedValue(0);
+  const reduce = useReduceMotion();
   const [confirm, setConfirm] = useState(false);
   const setProfile = useProfileStore((s) => s.setProfile);
   const upsertGoal = useGoalsStore((s) => s.upsertGoal);
@@ -95,9 +97,9 @@ export default function GoalDetail() {
         extra > 0 ? (
           <View
             style={styles.full}
-            onTouchStart={() => (preview.value = withSpring(1, spring.gentle))}
-            onTouchEnd={() => (preview.value = withSpring(0, spring.gentle))}
-            onTouchCancel={() => (preview.value = withSpring(0, spring.gentle))}
+            onTouchStart={() => (preview.value = reduce ? 1 : withSpring(1, spring.gentle))}
+            onTouchEnd={() => (preview.value = reduce ? 0 : withSpring(0, spring.gentle))}
+            onTouchCancel={() => (preview.value = reduce ? 0 : withSpring(0, spring.gentle))}
           >
             <PrimaryButton testID="detail-add" label={`Add ${formatINR(extra, { hidden })} a month`} onPress={() => setConfirm(true)} />
           </View>

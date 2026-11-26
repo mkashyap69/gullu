@@ -1,3 +1,4 @@
+// motion-audit: fade-only (opacity/colour only, or follows the finger; kept with reduced motion)
 /**
  * 1.6 Monthly (dusk). The amount is a draggable dial: digits roll like an odometer while dragging,
  * with a haptic tick every ₹1,000 (tap it to type instead). Toggling "My income varies" morphs the
@@ -72,7 +73,7 @@ export default function Monthly() {
         <Rise index={0}>
           <H1>How much can you invest each month?</H1>
         </Rise>
-        <PressScale onPress={() => (setDraft(s.monthly), setTyping(true))} accessibilityHint="Tap to type an amount" testID="monthly-type">
+        <PressScale onPress={() => (setDraft(s.monthly), setTyping(true))} accessibilityRole="button" accessibilityLabel="Type the monthly amount" accessibilityHint="Tap to type an amount" testID="monthly-type">
           <ScrubValue
             testID="monthly-amount"
             accessibilityLabel="Monthly amount"

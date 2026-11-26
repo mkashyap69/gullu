@@ -24,7 +24,7 @@ import { CLASS_DOT, CLASS_NAME } from '@/lib/classes';
 import { haptics } from '@/motion/haptics';
 import { useReduceMotion } from '@/motion/prefs';
 import { usePlanInput } from '@/plan/usePlan';
-import { signature } from '@/theme/motion';
+import { duration, signature } from '@/theme/motion';
 import { colors } from '@/theme/tokens';
 
 const MONTHS = 60;
@@ -85,7 +85,7 @@ export default function Timeline() {
     onFinalize: () => {
       'worklet';
       // Snap to the month under the lens.
-      pos.value = withTiming(Math.round(pos.value * (MONTHS - 1)) / (MONTHS - 1), { duration: 120 });
+      pos.value = withTiming(Math.round(pos.value * (MONTHS - 1)) / (MONTHS - 1), { duration: duration.instant });
     },
   });
   const play = () => {

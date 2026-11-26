@@ -1,3 +1,4 @@
+// motion-audit: direct manipulation (the movement follows the user's own touch, so it stays with reduced motion)
 /**
  * Press feedback for everything tappable (04-MOTION.md): scale to 0.97 on press-in with
  * spring.press and back on release. Optional haptic on press-in (not on release).
