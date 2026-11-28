@@ -155,7 +155,7 @@ export default function SplitStep() {
         <Caption style={styles.summary}>
           {sug.required <= sug.budget
             ? `Your goals then need ${formatINR(r500(sug.required))} a month, and you put in ${formatINR(sug.budget)}.`
-            : `Your goals then need ${formatINR(r500(sug.required))} a month, more than the ${formatINR(sug.budget)} you put in. The next screen shows what to do.`}
+            : `Your goals then need ${formatINR(r500(sug.required))} a month, more than the ${formatINR(sug.budget)} left for them${sug.budget < s.monthly ? ` once your ${formatINR(s.monthly - sug.budget)} goes to the safety net and yearly commitments first` : ''}. The next screen shows what to do.`}
         </Caption>
       </Screen>
       <Sheet open={editing != null} onClose={() => setEditing(null)}>

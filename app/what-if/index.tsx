@@ -74,7 +74,7 @@ function Rows({ outcomes, rewind }: { outcomes: GoalOutcome[]; rewind: number })
         return (
           <View key={o.goalId} style={styles.row} testID={`whatif-row-${o.goalId}`}>
             <View style={[styles.dot, { backgroundColor: goalColor(g) }]} />
-            <Body color={colors.text} style={styles.name} numberOfLines={1}>
+            <Body color={colors.text} style={styles.name} numberOfLines={1} ellipsizeMode="clip">
               {ringName(o.name)}
             </Body>
             <Body style={styles.before}>{maskRupees(o.before, hidden)}</Body>
@@ -299,9 +299,9 @@ const styles = StyleSheet.create({
   rows: { marginTop: 20, gap: 4, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: 44, gap: 12 },
   dot: { width: 10, height: 10, borderRadius: 5 },
-  name: { flex: 1 },
+  name: { flex: 1, minWidth: 84 },
   before: { textDecorationLine: 'line-through', color: colors.textCaption },
-  after: { minWidth: 92, alignItems: 'flex-end' },
+  after: { minWidth: 72, alignItems: 'flex-end' },
   shimmer: { position: 'absolute', top: 0, bottom: 0, width: 60, backgroundColor: colors.white },
   sliderHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, marginBottom: 8 },
   note: { marginTop: 16 },

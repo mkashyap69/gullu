@@ -121,10 +121,10 @@
                     "values": [
                       {
                         "name": "The goal that needs most",
-                        "value": ""
+                        "value": "auto"
                       }
                     ],
-                    "default": ""
+                    "default": "auto"
                   }
                 }
               }
